@@ -1,2 +1,6 @@
-public class Scheduler {
+public class Scheduler implements Runnable{
+    @Override
+    public void run() {
+
+    }
 }
