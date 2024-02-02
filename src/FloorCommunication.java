@@ -1,0 +1,2 @@
+public class FloorCommunication {
+}
