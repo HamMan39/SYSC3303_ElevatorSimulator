@@ -3,6 +3,10 @@ import java.util.ArrayList;
 public class MessageBox {
     private ArrayList<Message> messages;
 
+    public MessageBox() {
+        this.messages = new ArrayList<>();
+    }
+
     /**
      * Puts an object in the box.  This method returns when
      * the object has been put into the box.

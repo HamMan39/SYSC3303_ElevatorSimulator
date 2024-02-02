@@ -4,12 +4,20 @@ import java.util.Scanner;
 
 public class FloorSubSystem implements Runnable{
 
+    //Shared message box between this system and Scheduler
+    MessageBox box;
+
+    public FloorSubSystem(MessageBox box) {
+        this.box = box;
+    }
+
     /**
      * Returns a Message object representing the input str.
      * @param str the input line containing a message.
-     *
+     * @return new Message object
      * */
     public Message createMessage(String str){
+        System.out.println(str);
         String[] data = str.split(" ");
         String timestamp = data[0];
         int arrivalFloor = Integer.valueOf(data[1]);
@@ -30,7 +38,8 @@ public class FloorSubSystem implements Runnable{
             Scanner reader = new Scanner(file);
             while (reader.hasNextLine()) {
                 String data = reader.nextLine();
-                this.createMessage(data);
+                //put the new message in the shared box
+                box.put(this.createMessage(data));
             }
 
         } catch (FileNotFoundException e) {
@@ -39,8 +48,6 @@ public class FloorSubSystem implements Runnable{
     }
     @Override
     public void run() {
-
-
+        importData("input.txt");
     }
-
 }
