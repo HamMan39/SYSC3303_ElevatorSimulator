@@ -1,16 +1,20 @@
 import java.util.ArrayList;
 
 public class MessageBox {
-    private ArrayList<String> messages;
+    private ArrayList<Message> messages;
+
+    public MessageBox() {
+        this.messages = new ArrayList<>();
+    }
 
     /**
      * Puts an object in the box.  This method returns when
      * the object has been put into the box.
      *
-     * @param item The object to be put in the box.
+     * @param message The object to be put in the box.
      */
-    public synchronized void put(String item) {
-        messages.add(item);
+    public synchronized void put(Message message) {
+        messages.add(message);
         notifyAll();
     }
 
@@ -28,8 +32,9 @@ public class MessageBox {
                 return null;
             }
         }
-        String item = messages.removeLast();
+        //remove oldest message in the box (last message)
+        Message msg = messages.remove(messages.size()-1);
         notifyAll();
-        return item;
+        return msg;
     }
 }
