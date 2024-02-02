@@ -24,7 +24,7 @@ public class MessageBox {
      *
      * @return The object taken from the box.
      */
-    public synchronized Object get() {
+    public synchronized Message get() {
         while (messages.isEmpty()) {
             try {
                 wait();
