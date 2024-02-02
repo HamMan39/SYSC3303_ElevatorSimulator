@@ -1,6 +1,11 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+/**
+ * This Class represents the FloorSubsystem which reads the simulation input
+ * and sends the data to the scheduler class.
+ * @author Areej Mahmoud 101218260
+ */
 
 public class FloorSubSystem implements Runnable{
 

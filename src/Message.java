@@ -1,4 +1,8 @@
-
+/**
+ * This Class represents a message passed between the scheduler and a SubSystem class.
+ * The message contains raw data to start the elevator simulation.
+ * @author Areej Mahmoud 101218260
+ */
 public class Message {
     //Timestamp person presses the floor button
     String arrivalTime;

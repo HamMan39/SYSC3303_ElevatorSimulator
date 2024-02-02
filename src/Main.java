@@ -6,8 +6,8 @@ public class Main {
         box1 = new MessageBox(); // shared by floor and scheduler
         box2 = new MessageBox(); // shared by elevator and scheduler
 
-        // Create the barista and agent threads, passing each thread
-        // a reference to the shared Table.
+        // Create the floor, elevator and schedule threads, passing each thread
+        // a reference to its MessageBox.
         floor= new Thread(new FloorSubSystem(box1),"FloorSubSystem");
         elevator = new Thread(new ElevatorSubSystem(box2),"ElevatorSubSystem");
         scheduler= new Thread(new Scheduler(),"Scheduler");
