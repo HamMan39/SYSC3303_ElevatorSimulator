@@ -1,15 +1,21 @@
 public class ElevatorSubSystem implements Runnable {
     private int floor;
-    private MessageBox box;
+    private MessageBox elevatorMessage;
+    private Message messageRecieved;
 
-    public ElevatorSubSystem(MessageBox box){
-
+    public ElevatorSubSystem(MessageBox message){
         this.floor = 0;
-        this.box = box;
+        elevatorMessage = message;
     }
 
     @Override
     public void run() {
-
+        while(true){
+            Message message = elevatorMessage.get();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {}
+            elevatorMessage.put(message);
+        }
     }
 }
