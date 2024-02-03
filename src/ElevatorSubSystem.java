@@ -1,10 +1,14 @@
+/**
+ * This Class represents the ElevatorSubsystem which reads the simulation input from the scheduler class
+ * and sends the data back to scheduler
+ * @author Khola Haseeb 101192363
+ */
+
 public class ElevatorSubSystem implements Runnable {
-    private int floor;
+    //Shared message box between this system and Scheduler
     private MessageBox elevatorMessage;
-    private Message messageRecieved;
 
     public ElevatorSubSystem(MessageBox message){
-        this.floor = 0;
         elevatorMessage = message;
     }
 
