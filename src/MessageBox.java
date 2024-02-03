@@ -2,7 +2,7 @@ import java.util.ArrayList;
 /**
  * This class represents a protected Message Box which is shared between threads
  * and stores data that can be retrieved.
- * @author Mahnoor Fatima
+ * @author Mahnoor Fatima 101192353
  */
 public class MessageBox {
     private ArrayList<Message> messages;

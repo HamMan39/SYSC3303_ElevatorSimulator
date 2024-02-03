@@ -1,7 +1,9 @@
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Unit tests for Class Elevator
+ * @author Khola Haseeb 101192363
+ */
 public class ElevatorTest {
 
     @Test

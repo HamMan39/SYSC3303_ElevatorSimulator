@@ -1,7 +1,10 @@
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Unit tests for Class MessageBox
+ * @author Khola Haseeb 101192363
+ */
 class MessageBoxTest {
 
     @Test

@@ -1,7 +1,9 @@
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Unit tests for Class Floor
+ * @author Areej Mahmoud 101218260
+ */
 class FloorTest {
 
     @Test
