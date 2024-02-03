@@ -12,6 +12,7 @@ public class ElevatorSubSystem implements Runnable {
     public void run() {
         while(true){
             Message message = elevatorMessage.get();
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {}

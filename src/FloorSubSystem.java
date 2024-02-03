@@ -44,7 +44,8 @@ public class FloorSubSystem implements Runnable{
             while (reader.hasNextLine()) {
                 String data = reader.nextLine();
                 //put the new message in the shared box
-                box.put(this.createMessage(data));
+                Message newMsg = this.createMessage(data);
+                box.put(newMsg);
             }
 
         } catch (FileNotFoundException e) {

@@ -38,4 +38,10 @@ public class Message {
     public int getDestinationFloor() {
         return destinationFloor;
     }
+
+    @Override
+    public String toString() {
+        return arrivalTime + " " + arrivalFloor +
+                " " + direction+ " " + destinationFloor;
+    }
 }

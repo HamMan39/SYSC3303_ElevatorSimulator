@@ -15,6 +15,7 @@ public class MessageBox {
      */
     public synchronized void put(Message message) {
         messages.add(message);
+        System.out.println(Thread.currentThread().getName() + " sent message: " +message);
         notifyAll();
     }
 
@@ -34,6 +35,7 @@ public class MessageBox {
         }
         //remove oldest message in the box (last message)
         Message msg = messages.remove(messages.size()-1);
+        System.out.println(Thread.currentThread().getName() + " received message: " +msg);
         notifyAll();
         return msg;
     }
