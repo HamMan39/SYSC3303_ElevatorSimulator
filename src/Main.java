@@ -10,7 +10,7 @@ public class Main {
         // a reference to its MessageBox.
         floor= new Thread(new FloorSubSystem(box1),"FloorSubSystem");
         elevator = new Thread(new ElevatorSubSystem(box2),"ElevatorSubSystem");
-        scheduler= new Thread(new Scheduler(),"Scheduler");
+        scheduler= new Thread(new Scheduler(box1, box2),"Scheduler");
 
         //start threads running
         floor.start();
