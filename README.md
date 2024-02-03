@@ -50,7 +50,7 @@ The project is organized into the following main classes:
 
 ## Dependencies
 
-The project uses standard Java libraries.
+The project uses standard Java libraries. The Test classes run using the JUnit5.8.1 Library
 
 ## How to Run
 To run the project, follow these steps:
