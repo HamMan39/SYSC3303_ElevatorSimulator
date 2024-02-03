@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ElevatorTest {
 
     @Test
-    public void run(){
+    public void testRun(){
 
         //create MessageBox instances for testing
         MessageBox incommingMessages = new MessageBox();
