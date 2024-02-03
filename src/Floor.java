@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class Floor implements Runnable{
 
-    //Shared message box between this system and Scheduler
+    //Message boxes for communication with Scheduler
     MessageBox outgoingMessages, incomingMessages;
 
     public Floor(MessageBox box1, MessageBox box2) {
@@ -56,6 +56,15 @@ public class Floor implements Runnable{
             throw new RuntimeException(e);
         }
 
+    }
+
+    /**
+     * Execute the thread operations. Imports data from file and aends
+     * and receives messages to and from Scheduler
+     */
+    @Override
+    public void run() {
+        importData("input.txt");
         while (true){
             while(!incomingMessages.empty()) {
                 Message floorMessage = incomingMessages.get();
@@ -65,15 +74,10 @@ public class Floor implements Runnable{
                     System.out.println("Floor System Exited");
                     return;
                 }
-                System.out.println("Floor got message");
             }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {}
         }
-    }
-    @Override
-    public void run() {
-        importData("input.txt");
     }
 }
