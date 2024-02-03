@@ -4,12 +4,12 @@
 
 **Group Number:** 6
 
-**Team and Contributions:**
-1. Mahnoor Fatima (101192353),
-2. Khola Haseeb (101192363),
-3. Areej Mahmoud (101218260),
-4. Owen Petersen (101233850),
-5. Nikita Sara Vijay (101195009),
+**Team Contributions:**
+1. Mahnoor Fatima (101192353), Implemented Scheduler and MessageBox 
+2. Khola Haseeb (101192363), Implemented Elevator, Unit tests, and README
+3. Areej Mahmoud (101218260), Implemented Floor, Message and FloorTest
+4. Owen Petersen (101233850), Sequence Diagram
+5. Nikita Sara Vijay (101195009), UML Class Diagram
 
 **Project Iteration 1**
 
@@ -48,9 +48,15 @@ The project is organized into the following main classes:
 - The `Elevator` thread continuously receives messages from the Scheduler and sends responses.
 - The `Scheduler` manages the communication flow between the Elevator and Floor subsystems.
 
+## Unit Tests
+- FloorTest: Tests the ability of the Floor subsystem to read input file and
+pass data back and forth.
+- ElevatorTest: Tests the ability of the Elevator subsystem send and receive messages.
+- MessageBoxTest: Test the put() and get() functions of the box and guarantee mutual exclusion.
+
 ## Dependencies
 
-The project uses standard Java libraries. The Test classes run using the JUnit5.8.1 Library
+The project uses standard Java libraries. The test classes run using the JUnit 5.8.1 Library
 
 ## How to Run
 To run the project, follow these steps:
@@ -58,3 +64,4 @@ To run the project, follow these steps:
 1. Open the project IntelliJ.
 2. Locate the Main class.
 3. Run the main method in the Main class.
+4. To execute JUnit tests, right-click on 'src' folder in IntelliJ and select 'Run All Tests'
