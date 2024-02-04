@@ -6,8 +6,8 @@
 
 **Team Contributions:**
 1. Mahnoor Fatima (101192353), Implemented Scheduler and MessageBox 
-2. Khola Haseeb (101192363), Implemented Elevator, Unit tests, and README
-3. Areej Mahmoud (101218260), Implemented Floor, Message and FloorTest
+2. Khola Haseeb (101192363), Implemented Elevator, MessageBoxTest, ElevatorTest and README
+3. Areej Mahmoud (101218260), Implemented Floor, Message, SchedulerTest and FloorTest
 4. Owen Petersen (101233850), Sequence Diagram
 5. Nikita Sara Vijay (101195009), UML Class Diagram
 
@@ -53,7 +53,7 @@ The project is organized into the following main classes:
 pass data back and forth.
 - ElevatorTest: Tests the ability of the Elevator subsystem send and receive messages.
 - MessageBoxTest: Test the put() and get() functions of the box and guarantee mutual exclusion.
-
+- SchedulerTest: Test the ability of Scheduler to pass data back and forth between Floor and Elevator.
 ## Dependencies
 
 The project uses standard Java libraries. The test classes run using the JUnit 5.8.1 Library

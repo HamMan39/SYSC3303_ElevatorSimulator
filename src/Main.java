@@ -3,10 +3,10 @@ public class Main {
         Thread elevator, scheduler, floor;
         MessageBox box1, box2, box3, box4;
 
-        box1 = new MessageBox(); // shared by floor and scheduler
-        box2 = new MessageBox(); // shared by elevator and scheduler
-        box3 = new MessageBox(); //shared by floor and scheduler
-        box4 = new MessageBox(); //shared by floor and scheduler
+        box1 = new MessageBox(); // incomingFloor box
+        box2 = new MessageBox(); // outgoingFloor box
+        box3 = new MessageBox(); //incomingElevator box
+        box4 = new MessageBox(); //outgoingElevator bpx
 
         // Create the floor, elevator and schedule threads, passing each thread
         // a reference to its MessageBox.
