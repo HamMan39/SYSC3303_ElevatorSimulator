@@ -69,7 +69,6 @@ public class Floor implements Runnable{
             while(!incomingMessages.empty()) {
                 Message floorMessage = incomingMessages.get();
                 System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + floorMessage);
-
                 if (floorMessage == null) {
                     System.out.println("Floor System Exited");
                     return;
