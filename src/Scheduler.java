@@ -29,6 +29,7 @@ public class Scheduler implements Runnable {
     public Message checkFloorBox(){
         Message floorMessage = incomingFloor.get();
         if (floorMessage == null){
+            outgoingFloor.put(null);
             return null;
         }
         System.out.println(Thread.currentThread().getName() + " received message from Floor : " + floorMessage);
@@ -44,6 +45,7 @@ public class Scheduler implements Runnable {
     public Message checkElevatorBox(){
         Message elevatorMessage = outgoingElevator.get();
         if (elevatorMessage == null){
+            incomingElevator.put(null);
             return null;
         }
         System.out.println(Thread.currentThread().getName() + " received message from Elevator : " + elevatorMessage);
@@ -71,6 +73,7 @@ public class Scheduler implements Runnable {
                 System.out.println("Scheduler System Exited");
                 return;
             }
+
 
         }
     }
