@@ -1,6 +1,7 @@
 /**
  * This Class represents the Elevator Subsystem which sends and receives messages
  * to and from the scheduler class.
+ * @author Khola Haseeb 101192363
  */
 public class Elevator implements Runnable {
     //current floor that elevator is at
