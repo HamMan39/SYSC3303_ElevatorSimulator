@@ -51,7 +51,7 @@ class MessageBoxTest {
 
         // create messages for testing
         Message message = new Message("14:05:15.0",2, "Up", 4);
-        Message message2 = new Message("14:09:15.0",1, "Down", 3);
+        Message message2 = new Message("14:09:15.0",3, "Down", 1);
 
         //put message into the box
         messageBox.put(message);

@@ -24,7 +24,7 @@ class SchedulerTest {
         schedulerThread.start();
 
         Message floorMsg = new Message("14:05:15.0",2, "Up", 4);
-        Message elevMsg = new Message("14:05:15.0",6, "Up", 3);
+        Message elevMsg = new Message("14:05:15.0",6, "Down", 3);
 
         // Add message to incomingFloor
         incomingFloor.put(floorMsg);

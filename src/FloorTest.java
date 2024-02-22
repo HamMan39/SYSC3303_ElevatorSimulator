@@ -19,7 +19,7 @@ class FloorTest {
         floor.importData("input.txt");
 
         String testData1 = "14:05:15.0 2 Up 4";
-        String testData2 = "16:09:23:0 3 Down 6";
+        String testData2 = "16:09:23:0 6 Down 3";
 
         // Check if incommingMessages contains the test data
         assertEquals(testData1, incommingMessages.get().toString());

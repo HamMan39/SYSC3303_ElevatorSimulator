@@ -1,3 +1,5 @@
+import static java.lang.Math.abs;
+
 /**
  * This Class represents the Elevator Subsystem which sends and receives messages
  * to and from the scheduler class.
@@ -20,12 +22,30 @@ public class Elevator implements Runnable {
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
     }
+    /**
+     * Simulate Elevator travelling from current floor to destFloor
+     * @param destFloor the destination floor.
+     */
+    public void travelFloors(int destFloor){
+        System.out.println(Thread.currentThread().getName() + " moving from floor " + floor + " to floor " + destFloor);
+        String direction;
+        if((floor-destFloor)>0){
+            direction = "Down";
+        }else{direction = "Up";}
+
+        lampStatus(direction);
+        try {
+            long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
+            Thread.sleep(travelTime); //simulate time taken to travel floors
+        } catch (InterruptedException e) {
+        }
+        floor= destFloor; //arrive at destFloor
+    }
 
     /**
-     * Execute the Elevator thread operations. Receives messages from Scheduler
+     * Execute the Elevator thread operations. Receive messages from Scheduler
      * and sends the messages back through the MessageBox
      */
-
     @Override
     public void run() {
         while (true) {
@@ -39,35 +59,23 @@ public class Elevator implements Runnable {
 
 
             if (message.getArrivalFloor() != this.floor) {
-                System.out.println(Thread.currentThread().getName() + " moving from floor " + floor + " to floor " + message.getArrivalFloor());
-                lampStatus(message.getDirection());
-                try {
-                    Thread.sleep(7 * 1000);
-                } catch (InterruptedException e) {
-                }
+                travelFloors(message.getArrivalFloor());
             }
-            floor = message.getArrivalFloor();
-            System.out.println(">>" + Thread.currentThread().getName() + " is at floor " + floor + ". Waiting for doors to close");
+            System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + ". Waiting for doors to close");
             lampStatus(message.getDirection());
 
             try {
-                Thread.sleep(10 * 1000);
+                Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
             } catch (InterruptedException e) {
             }
 
-            System.out.println(Thread.currentThread().getName() + " doors closed. Moving to floor " + message.getDestinationFloor());
-            try {
-                Thread.sleep(7 * 1000);
-            } catch (InterruptedException e) {
-            }
-
-            floor = message.getDestinationFloor();
+            travelFloors(message.getDestinationFloor()); //travel to destination floor
 
             System.out.println(">>" + Thread.currentThread().getName() + " arrived at floor " + floor);
 
             String direction = null;
-            lampStatus(direction); 
-            outgoingMessages.put(message);
+            lampStatus(direction);
+            outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
             System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
 
         }
@@ -75,9 +83,11 @@ public class Elevator implements Runnable {
 
     public void lampStatus(String direction) {
         if (direction != null && (direction.equals("Up") || direction.equals("Down"))) {
-            System.out.println("Lamp has been turned on, elevator going " + direction);
+            System.out.println("Lamp ON, elevator going " + direction);
         } else {
-            System.out.println("Lamp has been turned off, elevator has arrived.");
+            System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
 }
+
+
