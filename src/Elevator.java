@@ -88,6 +88,10 @@ public class Elevator implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
+
+    public Integer getCurrentFloor(){
+        return floor;
+    }
 }
 
 
