@@ -27,15 +27,19 @@ public class Scheduler implements Runnable {
      * @return the message received from the Floor MessageBox, null if empty
      */
     public Message checkFloorBox(){
-        Message floorMessage = incomingFloor.get();
-        if (floorMessage == null){
-            outgoingFloor.put(null);
-            return null;
+        if (!incomingFloor.empty()) {
+            Message floorMessage = incomingFloor.get();
+            if (floorMessage == null) {
+                outgoingFloor.put(null);
+                return null;
+            }
+
+            System.out.println(Thread.currentThread().getName() + " received message from Floor : " + floorMessage);
+            outgoingFloor.put(floorMessage);
+//            System.out.println(Thread.currentThread().getName() + " sent message to Elevator : " + floorMessage);
+            return floorMessage;
         }
-        System.out.println(Thread.currentThread().getName() + " received message from Floor : " + floorMessage);
-        outgoingFloor.put(floorMessage);
-        System.out.println(Thread.currentThread().getName() + " sent message to Elevator : " + floorMessage);
-        return floorMessage;
+        return null;
     }
 
     /**
@@ -43,29 +47,31 @@ public class Scheduler implements Runnable {
      * @return @return the message received from the Elevator MessageBox, null if empty
      */
     public Message checkElevatorBox(){
-        Message elevatorMessage = outgoingElevator.get();
-        if (elevatorMessage == null){
-            incomingElevator.put(null);
-            return null;
+        if (!outgoingElevator.empty()) {
+            Message elevatorMessage = outgoingElevator.get();
+            if (elevatorMessage == null) {
+                incomingElevator.put(null);
+                return null;
+            }
+            System.out.println(Thread.currentThread().getName() + " received message from Elevator : " + elevatorMessage);
+            incomingElevator.put(elevatorMessage);
+//            System.out.println(Thread.currentThread().getName() + " sent message to Floor : " + elevatorMessage);
+            return elevatorMessage;
         }
-        System.out.println(Thread.currentThread().getName() + " received message from Elevator : " + elevatorMessage);
-        incomingElevator.put(elevatorMessage);
-        System.out.println(Thread.currentThread().getName() + " sent message to Floor : " + elevatorMessage);
-        return elevatorMessage;
+        return new Message(null,0,null,0);
     }
-
 
     @Override
     public void run() {
         while (true){
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {}
 
             checkFloorBox();
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {}
 
             Message elevatorMessage = checkElevatorBox();

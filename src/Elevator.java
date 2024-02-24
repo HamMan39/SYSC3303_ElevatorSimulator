@@ -76,7 +76,7 @@ public class Elevator implements Runnable {
             String direction = null;
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
-            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
+//            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
 
         }
     }
