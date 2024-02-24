@@ -1,7 +1,6 @@
 
-# Iteration 2 - SYSC3303 A4 - ElevatorSubsystem Real-time System Simulator
+# Iteration 2 - SYSC3303 A4 - Elevator Real-time System Simulator
 ## Overview
-
 **Group Number:** 6
 
 **Team Contributions:**
