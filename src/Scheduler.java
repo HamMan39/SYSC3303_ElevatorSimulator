@@ -21,6 +21,23 @@ public class Scheduler implements Runnable {
         outgoingElevator = box4;
 
     }
+    /**
+     * Returns a Message object representing the input str.
+     * @param str the input line containing a message.
+     * @return new Message object
+     * */
+    public Message createMessage(String str){
+        System.out.println(str);
+
+        String[] data = str.split(" ");
+        String timestamp = data[0];
+        int arrivalFloor = Integer.valueOf(data[1]);
+        String direction = data[2];
+        int destFloor = Integer.valueOf(data[3]);
+        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
+
+        return newMsg;
+    }
 
     /**
      * Get Message from Floor and send it to Elevator
