@@ -12,7 +12,9 @@ public class Main {
         // a reference to its MessageBox.
         floor= new Thread(new Floor(box1, box2),"Floor");
         elevator = new Thread(new Elevator(box3, box4),"Elevator");
-        scheduler= new Thread(new Scheduler(box1, box2, box3, box4),"Scheduler");
+        scheduler= new Thread(new Scheduler(),"Scheduler");
+
+
 
         //start threads running
         floor.start();
