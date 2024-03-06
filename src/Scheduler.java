@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.SynchronousQueue;
 
 /**
  * This Class represents the Scheduler which acts as a communication line
@@ -10,15 +9,12 @@ import java.util.concurrent.SynchronousQueue;
  * @author Mahnoor Fatima 101192353
  */
 public class Scheduler implements Runnable {
-    private ArrayList<LinkedList<ArrayList>> heldRequests;
+    private LinkedList<ArrayList> heldRequests;
     private ConcurrentLinkedQueue<ArrayList> newRequests;
     private boolean checkWaitingRequests;
 
     public Scheduler() {
-        heldRequests = new ArrayList<>();
-        heldRequests.add(new LinkedList<>());
-        heldRequests.add(new LinkedList<>());
-        heldRequests.add(new LinkedList<>());
+        heldRequests = new LinkedList<>();
 
         newRequests = new ConcurrentLinkedQueue<ArrayList>();
     }
@@ -39,43 +35,16 @@ public class Scheduler implements Runnable {
             ArrayList request = it.next();
             if (schedule(request)){
                 it.remove();
-            } else {
-                heldRequests.get(2).add(request);
+            }
+        }
+        // Attempt to schedule requests in first wait queue
+        it = heldRequests.iterator();
+        while (it.hasNext()) {
+            ArrayList request = it.next();
+            if (schedule(request)) {
                 it.remove();
             }
         }
-        if (checkWaitingRequests) { //Only need to check waiting requests when elevator direction has changed
-            // Attempt to schedule requests in first wait queue
-            it = heldRequests.get(0).iterator();
-            while (it.hasNext()) {
-                ArrayList request = it.next();
-                if (schedule(request)) {
-                    it.remove();
-                }
-            }
-            // Attempt to schedule requests in second wait queue
-            it = heldRequests.get(1).iterator();
-            while (it.hasNext()) {
-                ArrayList request = it.next();
-                if (schedule(request)) {
-                    it.remove();
-                } else {
-                    heldRequests.get(0).add(request);
-                    it.remove();
-                }
-            }
-            // Attempt to schedule requests in third wait queue
-            it = heldRequests.get(2).iterator();
-            while (it.hasNext()) {
-                ArrayList request = it.next();
-                if (schedule(request)) {
-                    it.remove();
-                } else {
-                    heldRequests.get(1).add(request);
-                    it.remove();
-                }
-            }
 
-        }
     }
 }
