@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -20,7 +18,18 @@ public class Scheduler implements Runnable {
     }
 
     private boolean schedule(ArrayList request){
+
         return true;
+    }
+    private ArrayList<Integer> determineSectorsElevator(ArrayList request){
+        int sourceFloor = (int) request.get(1);
+        if(sourceFloor == 1){
+            return new ArrayList(List.of(1,2));
+        } else if (1 < sourceFloor && sourceFloor <=12) {
+            return new ArrayList<>(List.of(3));
+        } else {
+            return new ArrayList<>(List.of(4));
+        }
     }
 
 

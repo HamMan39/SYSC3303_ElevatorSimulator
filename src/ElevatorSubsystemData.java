@@ -9,6 +9,7 @@ public class ElevatorSubsystemData {
 
     public ElevatorSubsystemData(){
         elevatorsStatus = new ArrayList<>();
+        //Creates an array for all elevators to represent the current status for each
         for (int i = 4; i > 0; i--){
             elevatorsStatus.add(new ArrayList(Arrays.asList(0, Directions.IDLE, 0)));
         }
