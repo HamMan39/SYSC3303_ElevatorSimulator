@@ -5,20 +5,28 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * This Class represents the Scheduler which acts as a communication line
  * to pass messages between Floor and Elevator Subsystems.
  * @author Mahnoor Fatima 101192353
+ * @author Owen Petersen 101233850
  */
 public class Scheduler implements Runnable {
     private LinkedList<ArrayList> heldRequests;
     private ConcurrentLinkedQueue<ArrayList> newRequests;
-    private boolean checkWaitingRequests;
+    private ElevatorSubsystemData elevatorsStatus;
 
     public Scheduler() {
         heldRequests = new LinkedList<>();
 
         newRequests = new ConcurrentLinkedQueue<ArrayList>();
+        elevatorsStatus = new ElevatorSubsystemData();
     }
 
     private boolean schedule(ArrayList request){
-
+        ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
+        for (Integer i: sectorElevators){
+            if (elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
+                //TODO assign task to elevator i
+                return true;
+            }
+        }
         return true;
     }
     private ArrayList<Integer> determineSectorsElevator(ArrayList request){
@@ -46,7 +54,7 @@ public class Scheduler implements Runnable {
                 it.remove();
             }
         }
-        // Attempt to schedule requests in first wait queue
+        // Attempt to schedule requests in wait queue
         it = heldRequests.iterator();
         while (it.hasNext()) {
             ArrayList request = it.next();
