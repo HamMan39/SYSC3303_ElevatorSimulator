@@ -13,7 +13,7 @@ import java.util.Scanner;
 public class Floor implements Runnable{
     private ArrayList<String> buffer;
     //Datagram packets to send and receive to/from scheduler
-    DatagramPacket sendPacket, receivePacket;
+    DatagramPacket sendPacket;
     //This socket will be used to send and receive packets
     DatagramSocket sendReceiveSocket;
 
@@ -27,22 +27,7 @@ public class Floor implements Runnable{
         }
     }
 
-//    /**
-//     * Returns a Message object representing the input str.
-//     * @param str the input line containing a message.
-//     * @return new Message object
-//     * */
-//    public Message createMessage(String str){
-//        System.out.println(str);
-//        String[] data = str.split(" ");
-//        String timestamp = data[0];
-//        int arrivalFloor = Integer.valueOf(data[1]);
-//        String direction = data[2];
-//        int destFloor = Integer.valueOf(data[3]);
-//        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
-//
-//        return newMsg;
-//    }
+
     /**
      * Prints information about the DatagramPacket packet.
      *
@@ -110,25 +95,7 @@ public class Floor implements Runnable{
             }
 
             System.out.println("Client: Packet sent.\n");
-
-//            // Construct a DatagramPacket for receiving packets up
-//            // to 100 bytes long (the length of the byte array).
-//
-//            byte data[] = new byte[100];
-//            receivePacket = new DatagramPacket(data, data.length);
-//
-//            try {
-//                // Block until a datagram is received via sendReceiveSocket.
-//                sendReceiveSocket.receive(receivePacket);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                System.exit(1);
-//            }
-//
-//            // Process the received datagram.
-//            printPacketInfo(receivePacket,"received",i);
         }
-        // We're finished, so close the socket.
         sendReceiveSocket.close();
     }
     /**
@@ -139,19 +106,6 @@ public class Floor implements Runnable{
     public void run() {
         importData("input.txt");
         sendAndReceive();
-        //while (true){
-//            while(!incomingMessages.empty()) {
-//                Message floorMessage = incomingMessages.get();
-//                System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + floorMessage);
-//                if (floorMessage == null) {
-//                    System.out.println("Floor System Exited");
-//                    return;
-//                }
-//            }
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {}
-//        }
     }
     public static void main(String args[])
     {

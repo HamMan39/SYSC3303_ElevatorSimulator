@@ -5,7 +5,6 @@
  */
 public class Message {
     //Timestamp person presses the floor button
-    Boolean replied;
     String arrivalTime;
     //Floor number where button was pressed
     int arrivalFloor;
@@ -22,7 +21,6 @@ public class Message {
         this.arrivalFloor = arrivalFloor;
         this.direction = direction;
         this.destinationFloor = destinationFloor;
-        this.replied = false;
     }
 
     public String getArrivalTime() {
@@ -40,10 +38,6 @@ public class Message {
     public int getDestinationFloor() {
         return destinationFloor;
     }
-
-    public boolean hasReply() {return replied;}
-
-    public void reply(){this.replied = false;}
 
     @Override
     public String toString() {

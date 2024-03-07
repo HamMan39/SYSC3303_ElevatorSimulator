@@ -4,15 +4,19 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 public class UDPReceiver implements Runnable{
+    MessageBox newMessages;
     DatagramPacket receivePacket;
     //This socket will be used to receive packets
     DatagramSocket receiveSocket;
     int requestCount;
+    int receivePort;
 
-    public UDPReceiver() {
+    public UDPReceiver(int receivePort, MessageBox box) {
+        this.receivePort = receivePort;
+        newMessages = box;
         try {
             requestCount =0;
-            receiveSocket = new DatagramSocket(20);
+            receiveSocket = new DatagramSocket(receivePort);
         } catch (SocketException se) {
             se.printStackTrace();
             System.exit(1);
@@ -27,6 +31,24 @@ public class UDPReceiver implements Runnable{
         System.out.print("Containing: ");
         System.out.println(new String(packet.getData(), 0, len));
     }
+
+    /**
+     * Returns a Message object representing the input str.
+     * @param str the input line containing a message.
+     * @return new Message object
+     * */
+    public Message createMessage(String str){
+        System.out.println(str);
+        String[] data = str.split(" ");
+        String timestamp = data[0];
+        int arrivalFloor = Integer.valueOf(data[1]);
+        String direction = data[2];
+        int destFloor = Integer.valueOf(data[3]);
+        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
+
+        return newMsg;
+    }
+
     public void receive() {
         while (true) {
             //increment request count
@@ -58,12 +80,9 @@ public class UDPReceiver implements Runnable{
                 e.printStackTrace();
                 System.exit(1);
             }
-
-//            //validate whether the received request, throw exception if invalid request,
-//            // and construct a response accordingly.
-//            if (!validatePacket(data)) {
-//                throw new Exception("invalid request.");
-//            }
+            //create a Message object from the received packet
+            Message newMsg = this.createMessage(new String(data));
+            newMessages.put(newMsg);
         }
     }
     @Override
@@ -72,7 +91,8 @@ public class UDPReceiver implements Runnable{
     }
     public static void main(String args[])
     {
-        Thread r = new Thread(new UDPReceiver());
+        MessageBox box = new MessageBox();
+        Thread r = new Thread(new UDPReceiver(20, box));
         r.start();
     }
 }
