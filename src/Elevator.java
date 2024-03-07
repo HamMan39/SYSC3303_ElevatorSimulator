@@ -6,6 +6,11 @@ import static java.lang.Math.abs;
  * @author Khola Haseeb 101192363
  */
 public class Elevator implements Runnable {
+
+    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED}
+
+    private state currentState;
+
     //current floor that elevator is at
     private int floor;
     //Message boxes for communication with Scheduler
@@ -21,13 +26,15 @@ public class Elevator implements Runnable {
         this.floor = 0;
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
+        this.currentState = state.IDLE;
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor
      * @param destFloor the destination floor.
      */
     public void travelFloors(int destFloor){
-        System.out.println(Thread.currentThread().getName() + " moving from floor " + floor + " to floor " + destFloor);
+        currentState = state.MOVING;
+        System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
         String direction;
         if((floor-destFloor)>0){
             direction = "Down";
@@ -61,17 +68,24 @@ public class Elevator implements Runnable {
             if (message.getArrivalFloor() != this.floor) {
                 travelFloors(message.getArrivalFloor());
             }
-            System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + ". Waiting for doors to close");
+
+            currentState = state.DOOR_OPEN;
+
+            System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
             lampStatus(message.getDirection());
 
             try {
                 Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
             } catch (InterruptedException e) {
             }
+            currentState = state.DOOR_CLOSED;
+            System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+
 
             travelFloors(message.getDestinationFloor()); //travel to destination floor
 
             System.out.println(">>" + Thread.currentThread().getName() + " arrived at floor " + floor);
+            currentState = state.IDLE;
 
             String direction = null;
             lampStatus(direction);
