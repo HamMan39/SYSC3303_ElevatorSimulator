@@ -1,87 +1,110 @@
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * This Class represents the Scheduler which acts as a communication line
  * to pass messages between Floor and Elevator Subsystems.
  * @author Mahnoor Fatima 101192353
+ * @author Owen Petersen 101233850
  */
 public class Scheduler implements Runnable {
-    //MessageBoxes for communication with Elevator and Floor Threads
-    MessageBox incomingFloor, outgoingFloor, incomingElevator, outgoingElevator;
+    private LinkedList<ArrayList> heldRequests;
+    private ConcurrentLinkedQueue<ArrayList> newRequests;
+    private ElevatorSubsystemData elevatorsStatus;
 
-    /**
-     * Constructor for class Scheduler.
-     * @param box1 incoming MessageBox with Floor
-     * @param box2 outgoing MessageBox with Floor
-     * @param box3 incoming MessageBox with Elevator
-     * @param box4 outgoing MessageBox with Elevator
-     */
-    public Scheduler(MessageBox box1, MessageBox box2, MessageBox box3, MessageBox box4) {
-        incomingFloor = box1;
-        outgoingFloor = box3;
-        incomingElevator = box2;
-        outgoingElevator = box4;
+    public Scheduler() {
+        heldRequests = new LinkedList<>();
 
+        newRequests = new ConcurrentLinkedQueue<ArrayList>();
+        elevatorsStatus = new ElevatorSubsystemData();
     }
 
-    /**
-     * Get Message from Floor and send it to Elevator
-     * @return the message received from the Floor MessageBox, null if empty
-     */
-    public Message checkFloorBox(){
-        if (!incomingFloor.empty()) {
-            Message floorMessage = incomingFloor.get();
-            if (floorMessage == null) {
-                outgoingFloor.put(null);
-                return null;
+    private boolean schedule(ArrayList request){
+        ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
+        // Case S1 (see Owen's notes)
+        for (Integer i: sectorElevators){
+            if (elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
+                //TODO assign task to elevator i
+                return true;
             }
-
-            System.out.println(Thread.currentThread().getName() + " received message from Floor : " + floorMessage);
-            outgoingFloor.put(floorMessage);
-//            System.out.println(Thread.currentThread().getName() + " sent message to Elevator : " + floorMessage);
-            return floorMessage;
         }
-        return null;
-    }
-
-    /**
-     * Get Message from Elevator and send it to Floor
-     * @return @return the message received from the Elevator MessageBox, null if empty
-     */
-    public Message checkElevatorBox(){
-        if (!outgoingElevator.empty()) {
-            Message elevatorMessage = outgoingElevator.get();
-            if (elevatorMessage == null) {
-                incomingElevator.put(null);
-                return null;
+        // Case S2 (see Owen's notes)
+        for (int i = 0; i < 4; i++){
+            if (!sectorElevators.contains(i)){
+                if ((elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i))){
+                    //TODO assign task to elevator i
+                    return true;
+                }
             }
-            System.out.println(Thread.currentThread().getName() + " received message from Elevator : " + elevatorMessage);
-            incomingElevator.put(elevatorMessage);
-//            System.out.println(Thread.currentThread().getName() + " sent message to Floor : " + elevatorMessage);
-            return elevatorMessage;
         }
-        return new Message(null,0,null,0);
+        // Case S3 (see Owen's notes)
+        for (Integer i: sectorElevators){
+            if (elevatorsStatus.soonSameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
+                //TODO assign task to elevator i
+                return true;
+            }
+        }
+        // Case S4 (see Owen's notes)
+        for (Integer i: sectorElevators){
+            if (elevatorsStatus.isIdle(i)) {
+                //TODO assign task to elevator i
+                return true;
+            }
+        }
+        // Case S5 (see Owen's notes)
+        for (int i = 0; i < 4; i++){
+            if (!sectorElevators.contains(i)){
+                if ((elevatorsStatus.soonSameDirection((ElevatorSubsystemData.Directions) request.get(1), i))){
+                    //TODO assign task to elevator i
+                    return true;
+                }
+            }
+        }
+        // Case S6 (see Owen's notes)
+        for (int i = 0; i < 4; i++){
+            if (!sectorElevators.contains(i)){
+                if (elevatorsStatus.isIdle(i)){
+                    //TODO assign task to elevator i
+                    return true;
+                }
+            }
+        }
+        return false;
     }
+    private ArrayList<Integer> determineSectorsElevator(ArrayList request){
+        int sourceFloor = (int) request.get(1);
+        if(sourceFloor == 1){
+            return new ArrayList(List.of(1,2));
+        } else if (1 < sourceFloor && sourceFloor <=12) {
+            return new ArrayList<>(List.of(3));
+        } else {
+            return new ArrayList<>(List.of(4));
+        }
+    }
+
+
+
 
     @Override
     public void run() {
-        while (true){
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {}
+        Iterator<ArrayList> it;
 
-            checkFloorBox();
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {}
-
-            Message elevatorMessage = checkElevatorBox();
-            if (elevatorMessage == null){
-                System.out.println("Scheduler System Exited");
-                return;
+        it = newRequests.iterator();
+        while(it.hasNext()){
+            ArrayList request = it.next();
+            if (schedule(request)){
+                it.remove();
             }
-
-
         }
+        // Attempt to schedule requests in wait queue
+        it = heldRequests.iterator();
+        while (it.hasNext()) {
+            ArrayList request = it.next();
+            if (schedule(request)) {
+                it.remove();
+            }
+        }
+
     }
 
 }
