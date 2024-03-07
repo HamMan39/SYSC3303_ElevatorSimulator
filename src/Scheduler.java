@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Scheduler implements Runnable {
     private LinkedList<ArrayList> heldRequests;
-    private ConcurrentLinkedQueue<ArrayList> newRequests;
+    private ConcurrentLinkedQueue<ArrayList> newRequests; // input to scheduler from floors
     private ElevatorSubsystemData elevatorsStatus;
 
     public Scheduler() {
