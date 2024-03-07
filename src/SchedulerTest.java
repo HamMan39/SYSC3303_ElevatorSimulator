@@ -17,7 +17,7 @@ class SchedulerTest {
         MessageBox outgoingElevator = new MessageBox(); //outgoingElevator box
 
         // Create Scheduler instance
-        Scheduler scheduler = new Scheduler(incomingFloor, outgoingFloor, incomingElevator, outgoingElevator);
+        Scheduler scheduler = new Scheduler();
 
         // create thread for scheduler and start it to execute run()
         Thread schedulerThread = new Thread(scheduler);
