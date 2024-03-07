@@ -11,9 +11,6 @@ import java.util.Scanner;
  */
 
 public class Floor implements Runnable{
-
-    //Message boxes for communication with Scheduler
-    //MessageBox outgoingMessages, incomingMessages;
     private ArrayList<String> buffer;
     //Datagram packets to send and receive to/from scheduler
     DatagramPacket sendPacket, receivePacket;
@@ -21,6 +18,7 @@ public class Floor implements Runnable{
     DatagramSocket sendReceiveSocket;
 
     public Floor() {
+        this.buffer = new ArrayList<>();
         try {
             sendReceiveSocket = new DatagramSocket();
         } catch (SocketException se) {   // Unable to create socket.
@@ -75,7 +73,6 @@ public class Floor implements Runnable{
                 //place the new request into buffer
                 buffer.add(data);
             }
-            buffer.add(null);
 
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
@@ -89,7 +86,7 @@ public class Floor implements Runnable{
     {
         // Create the specified request type: read/write
         byte msg[];
-        for(int i=1; i<buffer.size(); i++) {
+        for(int i=0; i<buffer.size(); i++) {
             msg = buffer.get(i).getBytes();
 
             //create packet to send to port 23 on the Intermediate Host
@@ -114,22 +111,22 @@ public class Floor implements Runnable{
 
             System.out.println("Client: Packet sent.\n");
 
-            // Construct a DatagramPacket for receiving packets up
-            // to 100 bytes long (the length of the byte array).
-
-            byte data[] = new byte[100];
-            receivePacket = new DatagramPacket(data, data.length);
-
-            try {
-                // Block until a datagram is received via sendReceiveSocket.
-                sendReceiveSocket.receive(receivePacket);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-            // Process the received datagram.
-            printPacketInfo(receivePacket,"received",i);
+//            // Construct a DatagramPacket for receiving packets up
+//            // to 100 bytes long (the length of the byte array).
+//
+//            byte data[] = new byte[100];
+//            receivePacket = new DatagramPacket(data, data.length);
+//
+//            try {
+//                // Block until a datagram is received via sendReceiveSocket.
+//                sendReceiveSocket.receive(receivePacket);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                System.exit(1);
+//            }
+//
+//            // Process the received datagram.
+//            printPacketInfo(receivePacket,"received",i);
         }
         // We're finished, so close the socket.
         sendReceiveSocket.close();
@@ -141,8 +138,8 @@ public class Floor implements Runnable{
     @Override
     public void run() {
         importData("input.txt");
-        while (true){
-              sendAndReceive();
+        sendAndReceive();
+        //while (true){
 //            while(!incomingMessages.empty()) {
 //                Message floorMessage = incomingMessages.get();
 //                System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + floorMessage);
@@ -154,6 +151,11 @@ public class Floor implements Runnable{
 //            try {
 //                Thread.sleep(1000);
 //            } catch (InterruptedException e) {}
-        }
+//        }
+    }
+    public static void main(String args[])
+    {
+        Thread f = new Thread(new Floor());
+        f.start();
     }
 }
