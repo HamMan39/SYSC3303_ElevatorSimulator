@@ -21,13 +21,55 @@ public class Scheduler implements Runnable {
 
     private boolean schedule(ArrayList request){
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
+        // Case S1 (see Owen's notes)
         for (Integer i: sectorElevators){
             if (elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
                 //TODO assign task to elevator i
                 return true;
             }
         }
-        return true;
+        // Case S2 (see Owen's notes)
+        for (int i = 0; i < 4; i++){
+            if (!sectorElevators.contains(i)){
+                if ((elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i))){
+                    //TODO assign task to elevator i
+                    return true;
+                }
+            }
+        }
+        // Case S3 (see Owen's notes)
+        for (Integer i: sectorElevators){
+            if (elevatorsStatus.soonSameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
+                //TODO assign task to elevator i
+                return true;
+            }
+        }
+        // Case S4 (see Owen's notes)
+        for (Integer i: sectorElevators){
+            if (elevatorsStatus.isIdle(i)) {
+                //TODO assign task to elevator i
+                return true;
+            }
+        }
+        // Case S5 (see Owen's notes)
+        for (int i = 0; i < 4; i++){
+            if (!sectorElevators.contains(i)){
+                if ((elevatorsStatus.soonSameDirection((ElevatorSubsystemData.Directions) request.get(1), i))){
+                    //TODO assign task to elevator i
+                    return true;
+                }
+            }
+        }
+        // Case S6 (see Owen's notes)
+        for (int i = 0; i < 4; i++){
+            if (!sectorElevators.contains(i)){
+                if (elevatorsStatus.isIdle(i)){
+                    //TODO assign task to elevator i
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     private ArrayList<Integer> determineSectorsElevator(ArrayList request){
         int sourceFloor = (int) request.get(1);
