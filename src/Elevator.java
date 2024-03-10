@@ -10,7 +10,7 @@ import static java.lang.Math.abs;
  */
 public class Elevator implements Runnable {
     //current floor that elevator is at
-    private int floor;
+    private int floor, numFloors, elevatorId;
     //Message boxes for communication with Scheduler
     private MessageBox incomingMessages, outgoingMessages;
 
@@ -20,10 +20,12 @@ public class Elevator implements Runnable {
      * @param box3 Incoming messages MessageBox
      * @param box4 Outgoing messages MessageBox
      */
-    public Elevator(MessageBox box3, MessageBox box4) {
+    public Elevator(int elevatorId, int numFloors, MessageBox box3, MessageBox box4) {
         this.floor = 0;
-        this.incomingMessages = box3;
         this.outgoingMessages = box4;
+        this.incomingMessages = box3;
+        this.elevatorId = elevatorId;
+        this.numFloors = numFloors;
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor

@@ -14,7 +14,7 @@ public class ElevatorTest {
         MessageBox outgoingMessages = new MessageBox();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(incomingMessages,outgoingMessages);
+        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
@@ -36,7 +36,7 @@ public class ElevatorTest {
         MessageBox outgoingMessages = new MessageBox();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(incomingMessages,outgoingMessages);
+        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
