@@ -1,13 +1,13 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class ElevatorSubsystemData {
+public class ElevatorData {
     private ArrayList<ArrayList> elevatorsStatus;
 
     public static enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
 
 
-    public ElevatorSubsystemData(){
+    public ElevatorData(){
         elevatorsStatus = new ArrayList<>();
         //Creates an array for all elevators to represent the current status for each
         for (int i = 4; i > 0; i--){

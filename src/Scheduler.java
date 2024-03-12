@@ -10,20 +10,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Scheduler implements Runnable {
     private LinkedList<ArrayList> heldRequests;
     private ConcurrentLinkedQueue<ArrayList> newRequests; // input to scheduler from floors
-    private ElevatorSubsystemData elevatorsStatus;
+    private ElevatorData elevatorsStatus;
 
     public Scheduler() {
         heldRequests = new LinkedList<>();
 
         newRequests = new ConcurrentLinkedQueue<ArrayList>();
-        elevatorsStatus = new ElevatorSubsystemData();
+        elevatorsStatus = new ElevatorData();
     }
 
     private boolean schedule(ArrayList request){
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         for (Integer i: sectorElevators){
-            if (elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
+            if (elevatorsStatus.sameDirection((ElevatorData.Directions) request.get(1), i)) {
                 //TODO assign task to elevator i
                 return true;
             }
@@ -31,7 +31,7 @@ public class Scheduler implements Runnable {
         // Case S2 (see Owen's notes)
         for (int i = 0; i < 4; i++){
             if (!sectorElevators.contains(i)){
-                if ((elevatorsStatus.sameDirection((ElevatorSubsystemData.Directions) request.get(1), i))){
+                if ((elevatorsStatus.sameDirection((ElevatorData.Directions) request.get(1), i))){
                     //TODO assign task to elevator i
                     return true;
                 }
@@ -39,7 +39,7 @@ public class Scheduler implements Runnable {
         }
         // Case S3 (see Owen's notes)
         for (Integer i: sectorElevators){
-            if (elevatorsStatus.soonSameDirection((ElevatorSubsystemData.Directions) request.get(1), i)) {
+            if (elevatorsStatus.soonSameDirection((ElevatorData.Directions) request.get(1), i)) {
                 //TODO assign task to elevator i
                 return true;
             }
@@ -54,7 +54,7 @@ public class Scheduler implements Runnable {
         // Case S5 (see Owen's notes)
         for (int i = 0; i < 4; i++){
             if (!sectorElevators.contains(i)){
-                if ((elevatorsStatus.soonSameDirection((ElevatorSubsystemData.Directions) request.get(1), i))){
+                if ((elevatorsStatus.soonSameDirection((ElevatorData.Directions) request.get(1), i))){
                     //TODO assign task to elevator i
                     return true;
                 }
