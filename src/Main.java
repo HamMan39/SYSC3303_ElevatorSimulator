@@ -11,10 +11,8 @@ public class Main {
         // Create the floor, elevator and schedule threads, passing each thread
         // a reference to its MessageBox.
         floor= new Thread(new Floor(box1, box2),"Floor");
-        elevator = new Thread(new Elevator(box3, box4),"Elevator");
+        elevator = new Thread(new ElevatorSubsystem(box3, box4, 4, 20),"ElevatorSubsystem");
         scheduler= new Thread(new Scheduler(),"Scheduler");
-
-
 
         //start threads running
         floor.start();
