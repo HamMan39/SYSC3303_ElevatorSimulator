@@ -1,4 +1,7 @@
 import static java.lang.Math.abs;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * This Class represents the Elevator which travels between floors according to
@@ -19,19 +22,25 @@ public class Elevator implements Runnable {
     //Message boxes for communication with Scheduler
     private MessageBox incomingMessages, outgoingMessages;
 
+    //Messages that have been read but not serviced - pending messages
+    private ArrayList<Message> pendingMessages;
+
+    private ElevatorData elevatorData;
+
     /**
      * Constructor for class Elevator
      *
      * @param box1 Incoming messages MessageBox
      * @param box2 Outgoing messages MessageBox
      */
-    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2) {
+    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2, ElevatorData elevatorData) {
         this.floor = 0;
         this.incomingMessages = box1;
         this.outgoingMessages = box2;
         this.elevatorId = elevatorId;
         this.numFloors = numFloors;
         this.currentState = state.IDLE;
+        this.elevatorData = elevatorData;
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor
@@ -39,6 +48,7 @@ public class Elevator implements Runnable {
      */
     public void travelFloors(int destFloor){
         currentState = state.MOVING;
+        SortedSet<Integer> pendingStops = new TreeSet<>();
         System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
         Message.Directions direction;
         if((floor-destFloor)>0){
@@ -47,12 +57,94 @@ public class Elevator implements Runnable {
 
         lampStatus(direction);
         //TODO: change to separate floor sleeps
+
         try {
             long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
             Thread.sleep(travelTime); //simulate time taken to travel floors
         } catch (InterruptedException e) {
         }
-        floor= destFloor; //arrive at destFloor
+
+        while(floor != destFloor) {
+
+            if (floor < destFloor){
+                floor++;
+                direction = Message.Directions.UP;
+                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
+            }else {
+                floor--;
+                direction = Message.Directions.DOWN;
+                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
+
+            }
+
+            // Go through pending messages
+            Message message = null;
+            int n = pendingMessages.size();
+            for(int i = 0; i < n; i++) {
+                message = pendingMessages.remove(0);
+
+                // Checks whether this service can be processed:
+                // If it's direction is the same as current movement or we have not already passed the floor, or it
+                // is not beyond the current destination
+                if(message.getDirection() != direction || (direction == Message.Directions.UP &&
+                        (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor)) || (direction == Message.Directions.DOWN  &&
+                        (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
+                    pendingMessages.add(message);    //Adds this request to the list of pending messages
+                    continue;
+                }
+
+                // Request can be processed, so add a stop for it
+                pendingStops.add(message.getArrivalFloor());
+                // Check if this request will result in modifying the destination, and add a stop accordingly
+                if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+                        || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
+                    // Destination has changed, so the old destination should be added as a stop
+                    pendingStops.add(destFloor);
+                    destFloor = message.getDestinationFloor();
+                } else {
+                    pendingStops.add(message.getDestinationFloor());
+                }
+            }
+
+            // Check for new messages
+            n = incomingMessages.getSize();
+
+            // Repeat the above logic for new requests
+            for(int i=0; i<n; i++) {
+                message = incomingMessages.get();
+                if(message.getDirection() != direction
+                        || (direction == Message.Directions.UP
+                        && (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor))
+                        || (direction == Message.Directions.DOWN
+                        && (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
+                    pendingMessages.add(message);
+                    continue;
+                }
+                pendingStops.add(message.getArrivalFloor());
+                if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+                        || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
+                    pendingStops.add(destFloor);
+                    destFloor = message.getDestinationFloor();
+                } else {
+                    pendingStops.add(message.getDestinationFloor());
+                }
+            }
+            Integer first = null;
+            // The pending stops is in sorted order
+            // If it is going up, processing will be done in ascending order, for going down, it will be descending
+            if(direction == Message.Directions.UP)
+                first = pendingStops.first();
+            else
+                first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
+            if(first == null || first != floor)
+                continue; // no stop at current floor
+
+            doorOpen(floor, currentState);
+            // stop at current floor
+            pendingStops.remove(first);
+        }
+
+   //     floor= destFloor; //arrive at destFloor
     }
 
     /**
@@ -62,7 +154,14 @@ public class Elevator implements Runnable {
     @Override
     public void run() {
         while (true) {
-            Message message = incomingMessages.get();
+            Message message = null;
+            // Process pending requests before new ones
+            if(pendingMessages != null && pendingMessages.size() > 0) {
+                message = pendingMessages.remove(0);
+            } else {
+                incomingMessages.get();
+            }
+
             if (message == null) {
                 System.out.println("Elevator System Exited");
                 outgoingMessages.put(null);
@@ -76,8 +175,7 @@ public class Elevator implements Runnable {
             }
 
             currentState = state.DOOR_OPEN;
-
-            System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+            doorOpen(floor, currentState);
             lampStatus(message.getDirection());
 
             try {
@@ -85,13 +183,12 @@ public class Elevator implements Runnable {
             } catch (InterruptedException e) {
             }
             currentState = state.DOOR_CLOSED;
-            System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
-
+            doorClosed(floor, currentState);
 
             travelFloors(message.getDestinationFloor()); //travel to destination floor
 
-            System.out.println(">>" + Thread.currentThread().getName() + " arrived at floor " + floor);
             currentState = state.IDLE;
+            arrivalStatus(floor, currentState);
 
             Message.Directions direction = null;
             lampStatus(direction);
@@ -112,6 +209,18 @@ public class Elevator implements Runnable {
     public Integer getCurrentFloor(){
         return floor;
     }
+
+    public void doorOpen(int floor, state currentState){
+        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+    }
+
+    public void doorClosed(int floor, state currentState){
+        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+    }
+    public void arrivalStatus(int floor, state currentState){
+        System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+    }
+
 }
 
 
