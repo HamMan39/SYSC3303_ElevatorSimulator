@@ -10,40 +10,38 @@ import java.util.Scanner;
  * @author Areej Mahmoud 101218260
  */
 
-public class Floor implements Runnable{
+public class Floor extends RPCClient implements Runnable{
     private ArrayList<String> buffer;
-    //Datagram packets to send and receive to/from scheduler
-    DatagramPacket sendPacket;
-    //This socket will be used to send and receive packets
-    DatagramSocket sendReceiveSocket;
+    private static int schedulerPort = 67;
 
     public Floor() {
         this.buffer = new ArrayList<>();
-        try {
-            sendReceiveSocket = new DatagramSocket();
-        } catch (SocketException se) {   // Unable to create socket.
-            se.printStackTrace();
-            System.exit(1);
-        }
     }
-
 
     /**
-     * Prints information about the DatagramPacket packet.
-     *
-     * @param packet    the packet to be printed
-     * @param direction the direction of the packet (received or sending)
-     * @param packetNum the packet number
-     */
-    private void printPacketInfo(DatagramPacket packet, String direction, int packetNum){
-        System.out.println("Client: " +direction+ " packet: "+packetNum);
-        System.out.println("To host: " + packet.getAddress());
-        System.out.println("Destination host port: " + packet.getPort());
-        int len = packet.getLength();
-        System.out.println("Length: " + len);
-        System.out.print("Containing: ");
-        System.out.println(new String(packet.getData(), 0, len));
+     * Returns a Message object representing the input str.
+     * @param str the input line containing a message.
+     * @return new Message object
+     * */
+    public Message createMessage(String str){
+        System.out.println(str);
+        String[] data = str.split(" ");
+        String timestamp = data[0];
+        int arrivalFloor = Integer.valueOf(data[1]);
+
+        Message.Directions direction;
+        if (data[2].equals("UP")) {
+            direction = Message.Directions.UP;
+        } else {
+            direction = Message.Directions.DOWN;
+        }
+
+        int destFloor = Integer.valueOf(data[3]);
+        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
+
+        return newMsg;
     }
+
     /**
      * Imports simulation input data by reading each line of the input text file
      * and places data into buffer.
@@ -67,36 +65,19 @@ public class Floor implements Runnable{
     /**
      * Send DatagramPacket to Host, then wait to receive a response packet
      */
-    public void sendAndReceive()
+    public void sendData()
     {
         // Create the specified request type: read/write
-        byte msg[];
+        String msg;
+        byte[] msgBytes;
         for(int i=0; i<buffer.size(); i++) {
-            msg = buffer.get(i).getBytes();
+            msg = buffer.get(i);
+            msgBytes = createMessage(msg).toByteArray();
 
-            //create packet to send to port 23 on the Intermediate Host
-            try {
-                sendPacket = new DatagramPacket(msg, msg.length,
-                        InetAddress.getLocalHost(), 20);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-            printPacketInfo(sendPacket, "sending", i);
-
-            // Send the datagram packet to the IntermediateHost via the send/receive socket.
-
-            try {
-                sendReceiveSocket.send(sendPacket);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+            sendAndReceive(msgBytes, schedulerPort);
 
             System.out.println("Client: Packet sent.\n");
         }
-        sendReceiveSocket.close();
     }
     /**
      * Execute the thread operations. Imports data from file
@@ -105,7 +86,7 @@ public class Floor implements Runnable{
     @Override
     public void run() {
         importData("input.txt");
-        sendAndReceive();
+        sendData();
     }
     public static void main(String args[])
     {

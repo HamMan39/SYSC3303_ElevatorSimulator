@@ -32,29 +32,6 @@ public class UDPReceiver implements Runnable{
         System.out.println(new String(packet.getData(), 0, len));
     }
 
-    /**
-     * Returns a Message object representing the input str.
-     * @param str the input line containing a message.
-     * @return new Message object
-     * */
-    public Message createMessage(String str){
-        System.out.println(str);
-        String[] data = str.split(" ");
-        String timestamp = data[0];
-        int arrivalFloor = Integer.valueOf(data[1]);
-
-        Message.Directions direction;
-        if (data[2].equals("UP")) {
-            direction = Message.Directions.UP;
-        } else {
-            direction = Message.Directions.DOWN;
-        }
-
-        int destFloor = Integer.valueOf(data[3]);
-        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
-
-        return newMsg;
-    }
 
     public void receive() {
         while (true) {
