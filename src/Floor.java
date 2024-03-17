@@ -15,6 +15,7 @@ public class Floor extends RPCClient implements Runnable{
     private static int schedulerPort = 67;
 
     public Floor() {
+        super();
         this.buffer = new ArrayList<>();
     }
 
