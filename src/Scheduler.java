@@ -8,71 +8,73 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author Owen Petersen 101233850
  */
 public class Scheduler implements Runnable {
-    private LinkedList<ArrayList> heldRequests;
-    private ConcurrentLinkedQueue<ArrayList> newRequests; // input to scheduler from floors
+    private LinkedList<Message> heldRequests;
+    private ConcurrentLinkedQueue<Message> newRequests; // input to scheduler from floors
     private ElevatorData elevatorsStatus;
 
     public Scheduler() {
         heldRequests = new LinkedList<>();
 
-        newRequests = new ConcurrentLinkedQueue<ArrayList>();
+        newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
     }
 
-    private boolean schedule(ArrayList request){
+    private boolean schedule(Message request){
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
-        for (Integer i: sectorElevators){
-            if (elevatorsStatus.sameDirection((ElevatorData.Directions) request.get(1), i)) {
-                //TODO assign task to elevator i
-                return true;
-            }
-        }
-        // Case S2 (see Owen's notes)
-        for (int i = 0; i < 4; i++){
-            if (!sectorElevators.contains(i)){
-                if ((elevatorsStatus.sameDirection((ElevatorData.Directions) request.get(1), i))){
+        synchronized (elevatorsStatus) {
+            for (Integer i : sectorElevators) {
+                if (elevatorsStatus.sameDirection(request.getDirection(), i)) {
                     //TODO assign task to elevator i
                     return true;
                 }
             }
-        }
-        // Case S3 (see Owen's notes)
-        for (Integer i: sectorElevators){
-            if (elevatorsStatus.soonSameDirection((ElevatorData.Directions) request.get(1), i)) {
-                //TODO assign task to elevator i
-                return true;
+            // Case S2 (see Owen's notes)
+            for (int i = 0; i < 4; i++) {
+                if (!sectorElevators.contains(i)) {
+                    if ((elevatorsStatus.sameDirection(request.getDirection(), i))) {
+                        //TODO assign task to elevator i
+                        return true;
+                    }
+                }
             }
-        }
-        // Case S4 (see Owen's notes)
-        for (Integer i: sectorElevators){
-            if (elevatorsStatus.isIdle(i)) {
-                //TODO assign task to elevator i
-                return true;
-            }
-        }
-        // Case S5 (see Owen's notes)
-        for (int i = 0; i < 4; i++){
-            if (!sectorElevators.contains(i)){
-                if ((elevatorsStatus.soonSameDirection((ElevatorData.Directions) request.get(1), i))){
+            // Case S3 (see Owen's notes)
+            for (Integer i : sectorElevators) {
+                if (elevatorsStatus.soonSameDirection(request.getDirection(), i)) {
                     //TODO assign task to elevator i
                     return true;
                 }
             }
-        }
-        // Case S6 (see Owen's notes)
-        for (int i = 0; i < 4; i++){
-            if (!sectorElevators.contains(i)){
-                if (elevatorsStatus.isIdle(i)){
+            // Case S4 (see Owen's notes)
+            for (Integer i : sectorElevators) {
+                if (elevatorsStatus.isIdle(i)) {
                     //TODO assign task to elevator i
                     return true;
+                }
+            }
+            // Case S5 (see Owen's notes)
+            for (int i = 0; i < 4; i++) {
+                if (!sectorElevators.contains(i)) {
+                    if ((elevatorsStatus.soonSameDirection(request.getDirection(), i))) {
+                        //TODO assign task to elevator i
+                        return true;
+                    }
+                }
+            }
+            // Case S6 (see Owen's notes)
+            for (int i = 0; i < 4; i++) {
+                if (!sectorElevators.contains(i)) {
+                    if (elevatorsStatus.isIdle(i)) {
+                        //TODO assign task to elevator i
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
-    private ArrayList<Integer> determineSectorsElevator(ArrayList request){
-        int sourceFloor = (int) request.get(1);
+    private ArrayList<Integer> determineSectorsElevator(Message request){
+        int sourceFloor = request.getArrivalFloor();
         if(sourceFloor == 1){
             return new ArrayList(List.of(1,2));
         } else if (1 < sourceFloor && sourceFloor <=12) {
@@ -82,16 +84,18 @@ public class Scheduler implements Runnable {
         }
     }
 
+    private void sendCommand()
+
 
 
 
     @Override
     public void run() {
-        Iterator<ArrayList> it;
+        Iterator<Message> it;
 
         it = newRequests.iterator();
         while(it.hasNext()){
-            ArrayList request = it.next();
+            Message request = it.next();
             if (schedule(request)){
                 it.remove();
             }
@@ -99,7 +103,7 @@ public class Scheduler implements Runnable {
         // Attempt to schedule requests in wait queue
         it = heldRequests.iterator();
         while (it.hasNext()) {
-            ArrayList request = it.next();
+            Message request = it.next();
             if (schedule(request)) {
                 it.remove();
             }
