@@ -7,6 +7,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
     private MessageBox[] messageBoxes;
     private ElevatorData elevatorData;
+    private static final int ELEVATOR_PORT = 23;
 
     /**
      * Constructor for class ElevatorSubsytem
@@ -14,13 +15,14 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
      * @param box3 Incoming messages MessageBox
      * @param box4 Outgoing messages MessageBox
      */
-    public ElevatorSubsystem(MessageBox box3, MessageBox box4, Integer numElevators, Integer numFloors) {
-        super();
+    public ElevatorSubsystem(Integer numElevators, Integer numFloors, MessageBox box3, MessageBox box4) {
+        super(ELEVATOR_PORT);
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
 
         elevatorData = new ElevatorData();
         elevators = new Thread[numElevators];
+
         messageBoxes = new MessageBox[numElevators];
 
 
@@ -39,7 +41,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
             String s = "This will be the elevator data";
             receiveAndSend(s.getBytes());
 
-            byte command[] = receivePacket.getData();
+            byte command[] = receiveSendPacket.getData();
 
             //read the first byte of the command, which is elevator id
             int elevatorId = command[0];
@@ -77,7 +79,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         box1 = new MessageBox(); //incomingElevator box
         box2 = new MessageBox(); //outgoingElevator bpx
-        elevator = new Thread(new ElevatorSubsystem(box1, box2, 4, 20),"ElevatorSubsystem");
+        elevator = new Thread(new ElevatorSubsystem( 4, 20, box1, box2),"ElevatorSubsystem");
         elevator.start();
     }
 }
