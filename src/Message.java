@@ -9,14 +9,17 @@ public class Message {
     //Floor number where button was pressed
     int arrivalFloor;
     //Direction of floor button pressed
-    String direction;
+    Directions direction;
     //Dest Elevator button pressed
     int destinationFloor;
+
+    public enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
+
 
     /**
      * Constructor for class Message.
      * */
-    public Message(String arrivalTime, int arrivalFloor, String direction, int destinationFloor) {
+    public Message(String arrivalTime, int arrivalFloor, Directions direction, int destinationFloor) {
         this.arrivalTime = arrivalTime;
         this.arrivalFloor = arrivalFloor;
         this.direction = direction;
@@ -31,7 +34,7 @@ public class Message {
         return arrivalFloor;
     }
 
-    public String getDirection() {
+    public Directions getDirection() {
         return direction;
     }
 
