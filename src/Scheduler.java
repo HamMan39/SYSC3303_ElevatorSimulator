@@ -142,11 +142,11 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     private ArrayList<Integer> determineSectorsElevator(Message request){
         int sourceFloor = request.getArrivalFloor();
         if(sourceFloor == 1){
-            return new ArrayList(List.of(1,2));
+            return new ArrayList(List.of(0,1));
         } else if (1 < sourceFloor && sourceFloor <=12) {
-            return new ArrayList<>(List.of(3));
+            return new ArrayList<>(List.of(2));
         } else {
-            return new ArrayList<>(List.of(4));
+            return new ArrayList<>(List.of(3));
         }
     }
 
