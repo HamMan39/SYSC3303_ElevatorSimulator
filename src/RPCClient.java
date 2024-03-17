@@ -7,6 +7,16 @@ public class RPCClient {
     DatagramSocket sendReceiveSocket;
     private static int numMessages = 0;
 
+    public RPCClient() {
+        try {
+            sendReceiveSocket = new DatagramSocket();
+            sendReceiveSocket.setSoTimeout(100000);
+        }catch (SocketException e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
     /**
      * Prints information about the DatagramPacket packet.
      *
