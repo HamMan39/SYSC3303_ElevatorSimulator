@@ -6,6 +6,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     private Thread[] elevators;
 
     private MessageBox[] messageBoxes;
+    private static final int ELEVATOR_PORT = 23;
 
     /**
      * Constructor for class ElevatorSubsytem
@@ -14,7 +15,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
      * @param box4 Outgoing messages MessageBox
      */
     public ElevatorSubsystem(MessageBox box3, MessageBox box4, Integer numElevators, Integer numFloors) {
-        super();
+        super(ELEVATOR_PORT);
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
 
@@ -38,28 +39,21 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
             String s = "This will be the elevator data";
             receiveAndSend(s.getBytes());
 
-            byte command[] = receivePacket.getData();
+            byte command[] = receiveSendPacket.getData();
 
             //TODO: read the first byte of the command, and send to correct elevator
 
-            Message message = incomingMessages.get();
-
-            if (message == null) {
-                System.out.println("Elevator System Exited");
-                outgoingMessages.put(null);
-                return;
-            }
-
-
-            System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
-
-            //assuming elevator 0 for now
-            messageBoxes[0].put(message);
-
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-            }
+//            Message message = incomingMessages.get();
+//
+//            if (message == null) {
+//                System.out.println("Elevator System Exited");
+//                outgoingMessages.put(null);
+//                return;
+//            }
+//            System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
+//
+//            //assuming elevator 0 for now
+//            messageBoxes[0].put(message);
         }
 
     }

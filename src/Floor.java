@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 public class Floor extends CommunicationRPC implements Runnable{
     private ArrayList<String> buffer;
-    private static int schedulerPort = 67;
+    private static final int SCHEDULER_PORT = 67;
 
     public Floor() {
         super();
@@ -73,7 +73,7 @@ public class Floor extends CommunicationRPC implements Runnable{
             msg = buffer.get(i);
             msgBytes = createMessage(msg).toByteArray();
 
-            sendAndReceive(msgBytes, schedulerPort);
+            sendAndReceive(msgBytes, SCHEDULER_PORT);
 
             System.out.println("Client: Packet sent.\n");
         }

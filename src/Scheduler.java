@@ -15,28 +15,74 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     private LinkedList<Message> heldRequests;
     private ConcurrentLinkedQueue<Message> newRequests; // input to scheduler from floors
     private ElevatorData elevatorsStatus;
-    private DatagramSocket elevatorSendSocket; //For sending ack to elevator subsystem
-
+    private DatagramSocket elevatorSocket, floorSocket; //For sending ack to elevator subsystem
+    private int numMessages = 0;
     private static final int ELEVATOR_PORT = 23; //elevator socket's port number
     public Scheduler() {
         heldRequests = new LinkedList<>();
-
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
 
-//        new ElevatorSubsystemListener();
-
         try {
-            elevatorSendSocket = new DatagramSocket();
+            elevatorSocket = new DatagramSocket();
+            floorSocket = new DatagramSocket(67);
         } catch (SocketException e) {
             e.printStackTrace();
             System.exit(1);
         }
     }
-    private void monitorFloor(){
-        String s = "Ack: received Floor input!";
-        receiveAndSend(s.getBytes());
+    /**
+     * Prints information about the DatagramPacket packet.
+     *
+     * @param packet    the packet to be printed
+     * @param direction the direction of the packet (received or sending)
+     * @param packetNum the packet number
+     */
+    private void printPacketInfo(DatagramPacket packet, String direction, int packetNum){
+        System.out.println(Thread.currentThread().getName() +direction+ " packet: "+packetNum);
+        System.out.println("To address: " + packet.getAddress());
+        System.out.println("Destination port: " + packet.getPort());
+        int len = packet.getLength();
+        System.out.println("Length: " + len);
+        System.out.print("Containing: ");
+        System.out.println(new String(packet.getData(), 0, len));
+        System.out.println("\n");
+    }
 
+    private void monitorFloor(){
+        while(true){
+            numMessages++;
+            System.out.println(Thread.currentThread().getName()+" Waiting....");
+            //receive the input from Floor
+            byte receiveData[] = new byte[100];
+            DatagramPacket floorReceivePacket = new DatagramPacket(receiveData, receiveData.length);
+            try {
+                floorSocket.receive(floorReceivePacket);
+                printPacketInfo(floorReceivePacket, "received", numMessages);
+            }catch (IOException e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+            //add receivedData to newRequests queue
+            Message newMsg = new Message(floorReceivePacket.getData());
+            newRequests.add(newMsg);
+
+            //create ack packet to send to floor
+            String s = "Ack: received Floor input!";
+            byte ack[] = s.getBytes();
+
+            DatagramPacket floorSendPacket = new DatagramPacket(ack, ack.length,
+                    floorReceivePacket.getAddress(), floorReceivePacket.getPort());
+            printPacketInfo(floorSendPacket, "sending", numMessages);
+
+            // Send the acknowledgement to the floor via the floorSocket.
+            try {
+                floorSocket.send(floorSendPacket);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
     }
 
     private boolean schedule(Message request){
@@ -108,7 +154,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     private void sendCommand(Message request, int elevator){
         ByteArrayOutputStream commandBuilder = new ByteArrayOutputStream();
         try {
-            commandBuilder.write(elevator); // First byte in data will be elevator
+            commandBuilder.write(elevator); // First byte in data will be elevator number
             commandBuilder.write(request.toByteArray()); // Rest of bytes is request
         } catch (IOException e){
             e.printStackTrace();
@@ -119,17 +165,17 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         sendAndReceive(commandData, ELEVATOR_PORT);
 
         //update elevatorStatus using ElevatorSubsystem response
-        byte response[] = receivePacket.getData();
-        elevatorsStatus.updateStatus(response);
+        byte response[] = sendReceivePacket.getData();
+        //elevatorsStatus.updateStatus(response);
 
         String s = "received the elevator data!";
         byte[] ack = s.getBytes();
         DatagramPacket ackSendPacket = new DatagramPacket(ack, ack.length,
-                receivePacket.getAddress(), receivePacket.getPort());
+                sendReceivePacket.getAddress(), sendReceivePacket.getPort());
 
         // Send the acknowledgement to the ElevatorSubsystem via socket.
         try {
-            elevatorSendSocket.send(ackSendPacket);
+            elevatorSocket.send(ackSendPacket);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -158,32 +204,13 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         }
 
     }
-//
-//    class ElevatorSubsystemListener extends Thread{
-//        DatagramSocket receiveElevatorUpdatesSocket; //For receiving real-time updates of elevator status
-//        public ElevatorSubsystemListener(){
-//            try {
-//                receiveElevatorUpdatesSocket = new DatagramSocket(32);
-//            } catch (SocketException e) {
-//                e.printStackTrace();
-//                System.exit(1);
-//            }
-//        }
-//
-//        public void run(){
-//
-//            //TODO RPC receive message from elevator subsystem (message has elevator status)
-//            //Probably best as byte array of elevatorData
-//
-//            elevatorsStatus.updateStatus(new byte[0]); //Update with byte array
-//        }
-//    }
 
     public static void main(String[] args) {
-        Thread scheduler;
-        scheduler= new Thread(new Scheduler(),"Scheduler");
-        scheduler.start();
-
+        Scheduler scheduler = new Scheduler();
+        Thread schedulerThread= new Thread(scheduler,"Scheduler");
+        Thread floorMonitor = new Thread(() -> scheduler.monitorFloor(), "FloorMonitor");
+        schedulerThread.start();
+        floorMonitor.start();
     }
 
 }
