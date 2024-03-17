@@ -11,12 +11,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author Mahnoor Fatima 101192353
  * @author Owen Petersen 101233850
  */
-public class Scheduler implements Runnable {
+public class Scheduler extends CommunicationRPC implements Runnable {
     private LinkedList<Message> heldRequests;
     private ConcurrentLinkedQueue<Message> newRequests; // input to scheduler from floors
     private ElevatorData elevatorsStatus;
-    private DatagramSocket sendCommandSocket; //For sending commands to elevator subsystem
+    private DatagramSocket elevatorSendSocket; //For sending ack to elevator subsystem
 
+    private static final int ELEVATOR_PORT = 23; //elevator socket's port number
     public Scheduler() {
         heldRequests = new LinkedList<>();
 
@@ -26,11 +27,16 @@ public class Scheduler implements Runnable {
 //        new ElevatorSubsystemListener();
 
         try {
-            sendCommandSocket = new DatagramSocket(21);
+            elevatorSendSocket = new DatagramSocket();
         } catch (SocketException e) {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+    private void monitorFloor(){
+        String s = "Ack: received Floor input!";
+        receiveAndSend(s.getBytes());
+
     }
 
     private boolean schedule(Message request){
@@ -101,7 +107,6 @@ public class Scheduler implements Runnable {
     //TODO implement RPC
     private void sendCommand(Message request, int elevator){
         ByteArrayOutputStream commandBuilder = new ByteArrayOutputStream();
-        DatagramPacket commandMessage;
         try {
             commandBuilder.write(elevator); // First byte in data will be elevator
             commandBuilder.write(request.toByteArray()); // Rest of bytes is request
@@ -110,9 +115,22 @@ public class Scheduler implements Runnable {
             System.exit(1);
         }
         byte[] commandData = commandBuilder.toByteArray();
+        //send the command to ElevatorSubsystem and receive Ack in form of ElevatorData update
+        sendAndReceive(commandData, ELEVATOR_PORT);
+
+        //update elevatorStatus using ElevatorSubsystem response
+        byte response[] = receivePacket.getData();
+        elevatorsStatus.updateStatus(response);
+
+        String s = "received the elevator data!";
+        byte[] ack = s.getBytes();
+        DatagramPacket ackSendPacket = new DatagramPacket(ack, ack.length,
+                receivePacket.getAddress(), receivePacket.getPort());
+
+        // Send the acknowledgement to the ElevatorSubsystem via socket.
         try {
-            commandMessage = new DatagramPacket(commandData, commandData.length, InetAddress.getLocalHost(), 0); //TODO set port to elevator subsystem
-        } catch (UnknownHostException e) {
+            elevatorSendSocket.send(ackSendPacket);
+        } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -121,20 +139,21 @@ public class Scheduler implements Runnable {
     @Override
     public void run() {
         Iterator<Message> it;
-
-        it = newRequests.iterator();
-        while(it.hasNext()){
-            Message request = it.next();
-            if (schedule(request)){
-                it.remove();
+        while(true){
+            it = newRequests.iterator();
+            while(it.hasNext()){
+                Message request = it.next();
+                if (schedule(request)){
+                    it.remove();
+                }
             }
-        }
-        // Attempt to schedule requests in wait queue
-        it = heldRequests.iterator();
-        while (it.hasNext()) {
-            Message request = it.next();
-            if (schedule(request)) {
-                it.remove();
+            // Attempt to schedule requests in wait queue
+            it = heldRequests.iterator();
+            while (it.hasNext()) {
+                Message request = it.next();
+                if (schedule(request)) {
+                    it.remove();
+                }
             }
         }
 
