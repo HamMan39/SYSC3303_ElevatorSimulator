@@ -15,7 +15,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
      * @param box3 Incoming messages MessageBox
      * @param box4 Outgoing messages MessageBox
      */
-    public ElevatorSubsystem(MessageBox box3, MessageBox box4, Integer numElevators, Integer numFloors) {
+    public ElevatorSubsystem(Integer numElevators, Integer numFloors, MessageBox box3, MessageBox box4) {
         super(ELEVATOR_PORT);
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
@@ -79,7 +79,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         box1 = new MessageBox(); //incomingElevator box
         box2 = new MessageBox(); //outgoingElevator bpx
-        elevator = new Thread(new ElevatorSubsystem(box1, box2, 4, 20),"ElevatorSubsystem");
+        elevator = new Thread(new ElevatorSubsystem( 4, 20, box1, box2),"ElevatorSubsystem");
         elevator.start();
     }
 }
