@@ -4,7 +4,7 @@ import java.util.Arrays;
 public class ElevatorData {
     private ArrayList<ArrayList> elevatorsStatus;
 
-    public static enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
+    public enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
 
 
     public ElevatorData(){
