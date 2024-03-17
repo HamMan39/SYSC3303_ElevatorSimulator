@@ -6,6 +6,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     private Thread[] elevators;
 
     private MessageBox[] messageBoxes;
+    private ElevatorData elevatorData;
     private static final int ELEVATOR_PORT = 23;
 
     /**
@@ -19,6 +20,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
 
+        elevatorData = new ElevatorData();
         elevators = new Thread[numElevators];
 
         messageBoxes = new MessageBox[numElevators];
@@ -26,7 +28,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         for(int i =0; i < numElevators; i++){
             messageBoxes[i] = new MessageBox();
-            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages));
+            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages, elevatorData));
         }
 
         for(int i =0; i < numElevators; i++){
@@ -41,19 +43,32 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
             byte command[] = receiveSendPacket.getData();
 
-            //TODO: read the first byte of the command, and send to correct elevator
+            //read the first byte of the command, which is elevator id
+            int elevatorId = command[0];
 
-//            Message message = incomingMessages.get();
-//
-//            if (message == null) {
-//                System.out.println("Elevator System Exited");
-//                outgoingMessages.put(null);
-//                return;
-//            }
-//            System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
-//
-//            //assuming elevator 0 for now
-//            messageBoxes[0].put(message);
+            byte[] byteMessage = new byte[command.length - 1];
+
+            for(int i = 1; i < command.length; i++){
+                byteMessage[i] = command[i];
+            }
+
+            Message message = new Message(byteMessage);
+
+            if (message == null) {
+                System.out.println("Elevator System Exited");
+                outgoingMessages.put(null);
+                return;
+            }
+
+            System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
+
+            //send message to correct elevator
+            messageBoxes[elevatorId].put(message);
+
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+            }
         }
 
     }
