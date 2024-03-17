@@ -37,8 +37,7 @@ public class Message {
      */
     public Message(byte[] messageData){
         //Create an input stream to parse the byte array
-        byte[] buffer = new byte[50];
-        ByteArrayInputStream inStream = new ByteArrayInputStream(buffer);
+        ByteArrayInputStream inStream = new ByteArrayInputStream(messageData);
 
         try {
             this.arrivalTime = Arrays.toString(inStream.readNBytes(10));
