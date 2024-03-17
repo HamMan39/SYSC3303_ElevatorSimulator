@@ -23,7 +23,7 @@ public class Scheduler implements Runnable {
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
 
-        new ElevatorSubsystemListener();
+//        new ElevatorSubsystemListener();
 
         try {
             sendCommandSocket = new DatagramSocket(21);
@@ -118,9 +118,6 @@ public class Scheduler implements Runnable {
         }
     }
 
-
-
-
     @Override
     public void run() {
         Iterator<Message> it;
@@ -142,25 +139,32 @@ public class Scheduler implements Runnable {
         }
 
     }
+//
+//    class ElevatorSubsystemListener extends Thread{
+//        DatagramSocket receiveElevatorUpdatesSocket; //For receiving real-time updates of elevator status
+//        public ElevatorSubsystemListener(){
+//            try {
+//                receiveElevatorUpdatesSocket = new DatagramSocket(32);
+//            } catch (SocketException e) {
+//                e.printStackTrace();
+//                System.exit(1);
+//            }
+//        }
+//
+//        public void run(){
+//
+//            //TODO RPC receive message from elevator subsystem (message has elevator status)
+//            //Probably best as byte array of elevatorData
+//
+//            elevatorsStatus.updateStatus(new byte[0]); //Update with byte array
+//        }
+//    }
 
-    class ElevatorSubsystemListener extends Thread{
-        DatagramSocket receiveElevatorUpdatesSocket; //For receiving real-time updates of elevator status
-        public ElevatorSubsystemListener(){
-            try {
-                receiveElevatorUpdatesSocket = new DatagramSocket(27);
-            } catch (SocketException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
+    public static void main(String[] args) {
+        Thread scheduler;
+        scheduler= new Thread(new Scheduler(),"Scheduler");
+        scheduler.start();
 
-        public void run(){
-
-            //TODO RPC receive message from elevator subsystem (message has elevator status)
-            //Probably best as byte array of elevatorData
-
-            elevatorsStatus.updateStatus(new byte[0]); //Update with byte array
-        }
     }
 
 }

@@ -1,4 +1,4 @@
-public class ElevatorSubsystem implements Runnable{
+public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
     //Message boxes for communication with Scheduler
     private MessageBox incomingMessages, outgoingMessages;
@@ -14,6 +14,7 @@ public class ElevatorSubsystem implements Runnable{
      * @param box4 Outgoing messages MessageBox
      */
     public ElevatorSubsystem(MessageBox box3, MessageBox box4, Integer numElevators, Integer numFloors) {
+        super();
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
 
@@ -33,8 +34,14 @@ public class ElevatorSubsystem implements Runnable{
     }
     @Override
     public void run() {
-
         while(true){
+            String s = "This will be the elevator data";
+            receiveAndSend(s.getBytes());
+
+            byte command[] = receivePacket.getData();
+
+            //TODO: read the first byte of the command, and send to correct elevator
+
             Message message = incomingMessages.get();
 
             if (message == null) {
@@ -42,6 +49,8 @@ public class ElevatorSubsystem implements Runnable{
                 outgoingMessages.put(null);
                 return;
             }
+
+
             System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
 
             //assuming elevator 0 for now
@@ -53,5 +62,15 @@ public class ElevatorSubsystem implements Runnable{
             }
         }
 
+    }
+
+    public static void main(String[] args) {
+        Thread elevator;
+        MessageBox box1, box2;
+
+        box1 = new MessageBox(); //incomingElevator box
+        box2 = new MessageBox(); //outgoingElevator bpx
+        elevator = new Thread(new ElevatorSubsystem(box1, box2, 4, 20),"ElevatorSubsystem");
+        elevator.start();
     }
 }
