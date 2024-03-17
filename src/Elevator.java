@@ -40,12 +40,13 @@ public class Elevator implements Runnable {
     public void travelFloors(int destFloor){
         currentState = state.MOVING;
         System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
-        String direction;
+        Message.Directions direction;
         if((floor-destFloor)>0){
-            direction = "Down";
-        }else{direction = "Up";}
+            direction = Message.Directions.DOWN;
+        }else{direction = Message.Directions.UP;}
 
         lampStatus(direction);
+        //TODO: change to separate floor sleeps
         try {
             long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
             Thread.sleep(travelTime); //simulate time taken to travel floors
@@ -92,7 +93,7 @@ public class Elevator implements Runnable {
             System.out.println(">>" + Thread.currentThread().getName() + " arrived at floor " + floor);
             currentState = state.IDLE;
 
-            String direction = null;
+            Message.Directions direction = null;
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
 //            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
@@ -100,8 +101,8 @@ public class Elevator implements Runnable {
         }
     }
 
-    public void lampStatus(String direction) {
-        if (direction != null && (direction.equals("Up") || direction.equals("Down"))) {
+    public void lampStatus(Message.Directions direction) {
+        if (direction != null && (direction==Message.Directions.UP || direction==Message.Directions.DOWN)) {
             System.out.println("Lamp ON, elevator going " + direction);
         } else {
             System.out.println("Lamp OFF, elevator has arrived.");
