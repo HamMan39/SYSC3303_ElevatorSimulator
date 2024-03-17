@@ -4,29 +4,27 @@ import java.util.Arrays;
 public class ElevatorData {
     private ArrayList<ArrayList> elevatorsStatus;
 
-    public static enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
-
 
     public ElevatorData(){
         elevatorsStatus = new ArrayList<>();
         //Creates an array for all elevators to represent the current status for each
         for (int i = 4; i > 0; i--){
-            elevatorsStatus.add(new ArrayList(Arrays.asList(0, Directions.IDLE, 0)));
+            elevatorsStatus.add(new ArrayList(Arrays.asList(0, Message.Directions.IDLE, 0)));
         }
     }
 
-    public boolean sameDirection(Directions requestDirection, int elevator) {
+    public boolean sameDirection(Message.Directions requestDirection, int elevator) {
         return (requestDirection.equals(elevatorsStatus.get(elevator).get(1)));
     }
-    public boolean soonSameDirection(Directions requestDirection, int elevator) {
-        if (requestDirection.equals(Directions.UP)){
-            return (elevatorsStatus.get(elevator).get(1).equals(Directions.DOWNUP));
+    public boolean soonSameDirection(Message.Directions requestDirection, int elevator) {
+        if (requestDirection.equals(Message.Directions.UP)){
+            return (elevatorsStatus.get(elevator).get(1).equals(Message.Directions.DOWNUP));
         } else {
-            return (elevatorsStatus.get(elevator).get(1).equals(Directions.UPDOWN));
+            return (elevatorsStatus.get(elevator).get(1).equals(Message.Directions.UPDOWN));
         }
     }
     public boolean isIdle(int elevator){
-        return (elevatorsStatus.get(elevator).get(1).equals(Directions.IDLE));
+        return (elevatorsStatus.get(elevator).get(1).equals(Message.Directions.IDLE));
     }
 
     public synchronized void updateStatus(int elevator, ArrayList status){

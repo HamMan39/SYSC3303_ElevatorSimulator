@@ -42,7 +42,14 @@ public class UDPReceiver implements Runnable{
         String[] data = str.split(" ");
         String timestamp = data[0];
         int arrivalFloor = Integer.valueOf(data[1]);
-        String direction = data[2];
+
+        Message.Directions direction;
+        if (data[2].equals("UP")) {
+            direction = Message.Directions.UP;
+        } else {
+            direction = Message.Directions.DOWN;
+        }
+
         int destFloor = Integer.valueOf(data[3]);
         Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
 
