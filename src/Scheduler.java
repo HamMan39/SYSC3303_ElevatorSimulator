@@ -15,7 +15,7 @@ public class Scheduler implements Runnable {
     private LinkedList<Message> heldRequests;
     private ConcurrentLinkedQueue<Message> newRequests; // input to scheduler from floors
     private ElevatorData elevatorsStatus;
-    private DatagramSocket elevatorSubsystemSocket;
+    private DatagramSocket sendCommandSocket; //For sending commands to elevator subsystem
 
     public Scheduler() {
         heldRequests = new LinkedList<>();
@@ -23,8 +23,10 @@ public class Scheduler implements Runnable {
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
 
+        new ElevatorSubsystemListener();
+
         try {
-            elevatorSubsystemSocket = new DatagramSocket(21);
+            sendCommandSocket = new DatagramSocket(21);
         } catch (SocketException e) {
             e.printStackTrace();
             System.exit(1);
@@ -139,6 +141,26 @@ public class Scheduler implements Runnable {
             }
         }
 
+    }
+
+    class ElevatorSubsystemListener extends Thread{
+        DatagramSocket receiveElevatorUpdatesSocket; //For receiving real-time updates of elevator status
+        public ElevatorSubsystemListener(){
+            try {
+                receiveElevatorUpdatesSocket = new DatagramSocket(27);
+            } catch (SocketException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+
+        public void run(){
+
+            //TODO RPC receive message from elevator subsystem (message has elevator status)
+            //Probably best as byte array of elevatorData
+
+            elevatorsStatus.updateStatus(new byte[0]); //Update with byte array
+        }
     }
 
 }
