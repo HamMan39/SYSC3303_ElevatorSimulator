@@ -22,13 +22,13 @@ public class Elevator implements Runnable {
     /**
      * Constructor for class Elevator
      *
-     * @param box3 Incoming messages MessageBox
-     * @param box4 Outgoing messages MessageBox
+     * @param box1 Incoming messages MessageBox
+     * @param box2 Outgoing messages MessageBox
      */
-    public Elevator(int elevatorId, int numFloors, MessageBox box3, MessageBox box4) {
+    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2) {
         this.floor = 0;
-        this.incomingMessages = box3;
-        this.outgoingMessages = box4;
+        this.incomingMessages = box1;
+        this.outgoingMessages = box2;
         this.elevatorId = elevatorId;
         this.numFloors = numFloors;
         this.currentState = state.IDLE;

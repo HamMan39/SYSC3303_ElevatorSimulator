@@ -1,7 +1,5 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 /**
@@ -10,7 +8,7 @@ import java.util.Scanner;
  * @author Areej Mahmoud 101218260
  */
 
-public class Floor extends RPCClient implements Runnable{
+public class Floor extends CommunicationRPC implements Runnable{
     private ArrayList<String> buffer;
     private static int schedulerPort = 67;
 
@@ -91,7 +89,8 @@ public class Floor extends RPCClient implements Runnable{
     }
     public static void main(String args[])
     {
-        Thread f = new Thread(new Floor());
-        f.start();
+        Thread floor;
+        floor= new Thread(new Floor(),"Floor");
+        floor.start();
     }
 }

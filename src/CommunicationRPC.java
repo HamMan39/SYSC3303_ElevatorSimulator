@@ -1,13 +1,12 @@
 import java.io.IOException;
 import java.net.*;
-import java.rmi.RemoteException;
 
-public class RPCClient {
-    DatagramPacket sendPacket, receivePacket;
+public class CommunicationRPC {
+    DatagramPacket sendPacket, receivePacket, receiveAckPacket;
     DatagramSocket sendReceiveSocket;
     private static int numMessages = 0;
 
-    public RPCClient() {
+    public CommunicationRPC() {
         try {
             sendReceiveSocket = new DatagramSocket();
             sendReceiveSocket.setSoTimeout(100000);
@@ -59,6 +58,34 @@ public class RPCClient {
         rpc_send(sendPacket, receivePacket);
 
     }
+
+    /**
+     * Receives packets from host, validates them, and responds accordingly.
+     *
+     */
+    public void receiveAndSend(byte[] msg) {
+        numMessages++;
+
+        byte receiveData[] = new byte[100];
+        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            sendReceiveSocket.receive(receivePacket);
+            printPacketInfo(receivePacket, "received", numMessages);
+        }catch (IOException e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        //create packet to send to port on the Scheduler
+        sendPacket = new DatagramPacket(msg, msg.length, receivePacket.getAddress(), receivePacket.getPort());
+        printPacketInfo(sendPacket, "sending", numMessages);
+
+        byte receiveAck[] = new byte[100];
+        receiveAckPacket = new DatagramPacket(receiveAck, receiveAck.length);
+        rpc_send(sendPacket, receivePacket);
+    }
+
+
     private void handleAcknowledgment(DatagramPacket acknowledgmentPacket) {
         // Handle the acknowledgment packet received from the scheduler
         System.out.println(Thread.currentThread().getName() + ": Acknowledgment received from host. " +
