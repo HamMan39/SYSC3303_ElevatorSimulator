@@ -2,14 +2,23 @@ import java.io.IOException;
 import java.net.*;
 
 public class CommunicationRPC {
-    DatagramPacket sendPacket, receivePacket, receiveAckPacket;
+    DatagramPacket sendPacket, receiveSendPacket, sendReceivePacket, receiveAckPacket;
     DatagramSocket sendReceiveSocket;
     private static int numMessages = 0;
 
     public CommunicationRPC() {
         try {
             sendReceiveSocket = new DatagramSocket();
-            sendReceiveSocket.setSoTimeout(100000);
+            sendReceiveSocket.setSoTimeout(60000);
+        }catch (SocketException e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    public CommunicationRPC(int portNum){
+        try {
+            sendReceiveSocket = new DatagramSocket(portNum);
+            sendReceiveSocket.setSoTimeout(60000);
         }catch (SocketException e){
             e.printStackTrace();
             System.exit(1);
@@ -46,16 +55,15 @@ public class CommunicationRPC {
         try {
             sendPacket = new DatagramPacket(msg, msg.length,
                     InetAddress.getLocalHost(), port);
-            printPacketInfo(sendPacket, "sending", numMessages);
             // Construct a DatagramPacket for receiving packets up
             // to 100 bytes long (the length of the byte array).
-            receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            sendReceivePacket = new DatagramPacket(receiveData, receiveData.length);
         } catch (UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
 
-        rpc_send(sendPacket, receivePacket);
+        rpc_send(sendPacket, sendReceivePacket);
 
     }
 
@@ -65,24 +73,24 @@ public class CommunicationRPC {
      */
     public void receiveAndSend(byte[] msg) {
         numMessages++;
+        System.out.println(Thread.currentThread().getName()+" Waiting....");
 
         byte receiveData[] = new byte[100];
-        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        receiveSendPacket = new DatagramPacket(receiveData, receiveData.length);
         try {
-            sendReceiveSocket.receive(receivePacket);
-            printPacketInfo(receivePacket, "received", numMessages);
+            sendReceiveSocket.receive(receiveSendPacket);
+            printPacketInfo(receiveSendPacket, "received", numMessages);
         }catch (IOException e){
             e.printStackTrace();
             System.exit(1);
         }
 
         //create packet to send to port on the Scheduler
-        sendPacket = new DatagramPacket(msg, msg.length, receivePacket.getAddress(), receivePacket.getPort());
-        printPacketInfo(sendPacket, "sending", numMessages);
+        sendPacket = new DatagramPacket(msg, msg.length, receiveSendPacket.getAddress(), receiveSendPacket.getPort());
 
         byte receiveAck[] = new byte[100];
         receiveAckPacket = new DatagramPacket(receiveAck, receiveAck.length);
-        rpc_send(sendPacket, receivePacket);
+        rpc_send(sendPacket, receiveAckPacket);
     }
 
 
@@ -100,10 +108,10 @@ public class CommunicationRPC {
             System.out.println(Thread.currentThread().getName() + ": Attempt " + (attempt + 1));
             try {
                 sendReceiveSocket.send(request);
-
-                try{ //slow things down
-                    Thread.sleep(5000);
-                }catch(InterruptedException e) {}
+                printPacketInfo(request, "sending", numMessages);
+//                try{ //slow things down
+//                    Thread.sleep(5000);
+//                }catch(InterruptedException e) {}
 
                 // Attempt to receive the acknowledgment
                 sendReceiveSocket.receive(response);

@@ -6,6 +6,8 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     private Thread[] elevators;
 
     private MessageBox[] messageBoxes;
+    private ElevatorData elevatorData;
+    private static final int ELEVATOR_PORT = 23;
 
     /**
      * Constructor for class ElevatorSubsytem
@@ -13,11 +15,12 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
      * @param box3 Incoming messages MessageBox
      * @param box4 Outgoing messages MessageBox
      */
-    public ElevatorSubsystem(MessageBox box3, MessageBox box4, Integer numElevators, Integer numFloors) {
-        super();
+    public ElevatorSubsystem(Integer numElevators, Integer numFloors, MessageBox box3, MessageBox box4) {
+        super(ELEVATOR_PORT);
         this.incomingMessages = box3;
         this.outgoingMessages = box4;
 
+        elevatorData = new ElevatorData();
         elevators = new Thread[numElevators];
 
         messageBoxes = new MessageBox[numElevators];
@@ -25,7 +28,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         for(int i =0; i < numElevators; i++){
             messageBoxes[i] = new MessageBox();
-            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages));
+            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages, elevatorData));
         }
 
         for(int i =0; i < numElevators; i++){
@@ -38,11 +41,18 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
             String s = "This will be the elevator data";
             receiveAndSend(s.getBytes());
 
-            byte command[] = receivePacket.getData();
+            byte command[] = receiveSendPacket.getData();
 
-            //TODO: read the first byte of the command, and send to correct elevator
+            //read the first byte of the command, which is elevator id
+            int elevatorId = command[0];
 
-            Message message = incomingMessages.get();
+            byte[] byteMessage = new byte[command.length - 1];
+
+            for(int i = 1; i < command.length; i++){
+                byteMessage[i] = command[i];
+            }
+
+            Message message = new Message(byteMessage);
 
             if (message == null) {
                 System.out.println("Elevator System Exited");
@@ -50,11 +60,10 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
                 return;
             }
 
-
             System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
 
-            //assuming elevator 0 for now
-            messageBoxes[0].put(message);
+            //send message to correct elevator
+            messageBoxes[elevatorId].put(message);
 
             try {
                 Thread.sleep(20);
@@ -70,7 +79,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         box1 = new MessageBox(); //incomingElevator box
         box2 = new MessageBox(); //outgoingElevator bpx
-        elevator = new Thread(new ElevatorSubsystem(box1, box2, 4, 20),"ElevatorSubsystem");
+        elevator = new Thread(new ElevatorSubsystem( 4, 20, box1, box2),"ElevatorSubsystem");
         elevator.start();
     }
 }
