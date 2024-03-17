@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class Elevator implements Runnable {
     //current floor that elevator is at
-    private int floor;
+    private int floor, numFloors, elevatorId;
     //Message boxes for communication with Scheduler
     private MessageBox incomingMessages, outgoingMessages;
 
