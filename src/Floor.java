@@ -77,6 +77,8 @@ public class Floor extends CommunicationRPC implements Runnable{
 
             System.out.println("Client: Packet sent.\n");
         }
+        byte[] nullArray = null;
+        sendAndReceive(nullArray, SCHEDULER_PORT);
     }
     /**
      * Execute the thread operations. Imports data from file

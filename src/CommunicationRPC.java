@@ -9,7 +9,7 @@ public class CommunicationRPC {
     public CommunicationRPC() {
         try {
             sendReceiveSocket = new DatagramSocket();
-            sendReceiveSocket.setSoTimeout(60000);
+            sendReceiveSocket.setSoTimeout(100000);
         }catch (SocketException e){
             e.printStackTrace();
             System.exit(1);
@@ -18,7 +18,7 @@ public class CommunicationRPC {
     public CommunicationRPC(int portNum){
         try {
             sendReceiveSocket = new DatagramSocket(portNum);
-            sendReceiveSocket.setSoTimeout(60000);
+            sendReceiveSocket.setSoTimeout(100000);
         }catch (SocketException e){
             e.printStackTrace();
             System.exit(1);
@@ -49,7 +49,9 @@ public class CommunicationRPC {
      */
     public void sendAndReceive(byte[] msg, int port){
         numMessages++;
-
+        if(msg == null) {
+            return;
+        }
         byte receiveData[] = new byte[100];
         //create packet to send to port on the Scheduler
         try {

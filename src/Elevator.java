@@ -66,11 +66,11 @@ public class Elevator implements Runnable {
 
         while(floor != destFloor) {
 
-            if (floor < destFloor){
+            if (floor < destFloor) {
                 floor++;
                 direction = Message.Directions.UP;
                 System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
-            }else {
+            } else {
                 floor--;
                 direction = Message.Directions.DOWN;
                 System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
@@ -79,15 +79,20 @@ public class Elevator implements Runnable {
 
             // Go through pending messages
             Message message = null;
-            int n = pendingMessages.size();
-            for(int i = 0; i < n; i++) {
+            int n;
+
+            if (pendingMessages != null) {
+                n = pendingMessages.size();
+
+
+            for (int i = 0; i < n; i++) {
                 message = pendingMessages.remove(0);
 
                 // Checks whether this service can be processed:
                 // If it's direction is the same as current movement or we have not already passed the floor, or it
                 // is not beyond the current destination
-                if(message.getDirection() != direction || (direction == Message.Directions.UP &&
-                        (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor)) || (direction == Message.Directions.DOWN  &&
+                if (message.getDirection() != direction || (direction == Message.Directions.UP &&
+                        (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor)) || (direction == Message.Directions.DOWN &&
                         (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
                     pendingMessages.add(message);    //Adds this request to the list of pending messages
                     continue;
@@ -96,7 +101,7 @@ public class Elevator implements Runnable {
                 // Request can be processed, so add a stop for it
                 pendingStops.add(message.getArrivalFloor());
                 // Check if this request will result in modifying the destination, and add a stop accordingly
-                if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+                if (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                         || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
                     // Destination has changed, so the old destination should be added as a stop
                     pendingStops.add(destFloor);
@@ -143,6 +148,7 @@ public class Elevator implements Runnable {
             // stop at current floor
             pendingStops.remove(first);
         }
+        }
 
    //     floor= destFloor; //arrive at destFloor
     }
@@ -159,7 +165,7 @@ public class Elevator implements Runnable {
             if(pendingMessages != null && pendingMessages.size() > 0) {
                 message = pendingMessages.remove(0);
             } else {
-                incomingMessages.get();
+                message = incomingMessages.get();
             }
 
             if (message == null) {

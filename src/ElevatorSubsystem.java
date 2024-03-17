@@ -51,14 +51,14 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
             for(int i = 1; i < command.length; i++){
                 byteMessage[i-1] = command[i];
             }
-
-            Message message = new Message(byteMessage);
-
-            if (message == null) {
+            if (byteMessage == null) {
                 System.out.println("Elevator System Exited");
                 outgoingMessages.put(null);
                 return;
             }
+            Message message = new Message(byteMessage);
+
+
 
             System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
 
