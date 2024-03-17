@@ -40,7 +40,7 @@ public class Message {
         ByteArrayInputStream inStream = new ByteArrayInputStream(messageData);
 
         try {
-            this.arrivalTime = Arrays.toString(inStream.readNBytes(10));
+            this.arrivalTime = new String(inStream.readNBytes(10));
             this.arrivalFloor = inStream.read();
             this.direction = Directions.values()[inStream.read()];
             this.destinationFloor = inStream.read();
