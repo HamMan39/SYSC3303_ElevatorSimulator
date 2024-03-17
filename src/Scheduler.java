@@ -1,5 +1,9 @@
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 
 /**
  * This Class represents the Scheduler which acts as a communication line
@@ -11,12 +15,20 @@ public class Scheduler implements Runnable {
     private LinkedList<Message> heldRequests;
     private ConcurrentLinkedQueue<Message> newRequests; // input to scheduler from floors
     private ElevatorData elevatorsStatus;
+    private DatagramSocket elevatorSubsystemSocket;
 
     public Scheduler() {
         heldRequests = new LinkedList<>();
 
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
+
+        try {
+            elevatorSubsystemSocket = new DatagramSocket(21);
+        } catch (SocketException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     private boolean schedule(Message request){
@@ -25,7 +37,7 @@ public class Scheduler implements Runnable {
         synchronized (elevatorsStatus) {
             for (Integer i : sectorElevators) {
                 if (elevatorsStatus.sameDirection(request.getDirection(), i)) {
-                    //TODO assign task to elevator i
+                    sendCommand(request, i);
                     return true;
                 }
             }
@@ -33,7 +45,7 @@ public class Scheduler implements Runnable {
             for (int i = 0; i < 4; i++) {
                 if (!sectorElevators.contains(i)) {
                     if ((elevatorsStatus.sameDirection(request.getDirection(), i))) {
-                        //TODO assign task to elevator i
+                        sendCommand(request, i);
                         return true;
                     }
                 }
@@ -41,14 +53,14 @@ public class Scheduler implements Runnable {
             // Case S3 (see Owen's notes)
             for (Integer i : sectorElevators) {
                 if (elevatorsStatus.soonSameDirection(request.getDirection(), i)) {
-                    //TODO assign task to elevator i
+                    sendCommand(request, i);
                     return true;
                 }
             }
             // Case S4 (see Owen's notes)
             for (Integer i : sectorElevators) {
                 if (elevatorsStatus.isIdle(i)) {
-                    //TODO assign task to elevator i
+                    sendCommand(request, i);
                     return true;
                 }
             }
@@ -56,7 +68,7 @@ public class Scheduler implements Runnable {
             for (int i = 0; i < 4; i++) {
                 if (!sectorElevators.contains(i)) {
                     if ((elevatorsStatus.soonSameDirection(request.getDirection(), i))) {
-                        //TODO assign task to elevator i
+                        sendCommand(request, i);
                         return true;
                     }
                 }
@@ -65,7 +77,7 @@ public class Scheduler implements Runnable {
             for (int i = 0; i < 4; i++) {
                 if (!sectorElevators.contains(i)) {
                     if (elevatorsStatus.isIdle(i)) {
-                        //TODO assign task to elevator i
+                        sendCommand(request, i);
                         return true;
                     }
                 }
@@ -84,7 +96,25 @@ public class Scheduler implements Runnable {
         }
     }
 
-    private void sendCommand()
+    //TODO implement RPC
+    private void sendCommand(Message request, int elevator){
+        ByteArrayOutputStream commandBuilder = new ByteArrayOutputStream();
+        DatagramPacket commandMessage;
+        try {
+            commandBuilder.write(elevator); // First byte in data will be elevator
+            commandBuilder.write(request.toByteArray()); // Rest of bytes is request
+        } catch (IOException e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        byte[] commandData = commandBuilder.toByteArray();
+        try {
+            commandMessage = new DatagramPacket(commandData, commandData.length, InetAddress.getLocalHost(), 0); //TODO set port to elevator subsystem
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
 
 
 
