@@ -91,7 +91,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         }
     }
 
-    private boolean schedule(Message request){
+    public boolean schedule(Message request){
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         synchronized (elevatorsStatus) {
