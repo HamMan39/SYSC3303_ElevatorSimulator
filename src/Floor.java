@@ -85,6 +85,11 @@ public class Floor extends CommunicationRPC implements Runnable{
             System.out.println("Client: Packet sent.\n");
         }
     }
+
+    public ArrayList<String> getBuffer(){
+        return buffer;
+    }
+
     /**
      * Execute the thread operations. Imports data from file
      * and sends/receives messages to and from Scheduler
