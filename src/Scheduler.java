@@ -30,6 +30,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             e.printStackTrace();
             System.exit(1);
         }
+
+        (new ElevatorSubsystemListener()).start();
     }
     /**
      * Prints information about the DatagramPacket packet.
@@ -158,8 +160,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
     //TODO implement RPC
     private void sendCommand(Message request, int elevator){
-//        System.out.println("---------------");
-//        System.out.println(elevator);
+        System.out.println("---------------");
+        System.out.println(elevator);
         ByteArrayOutputStream commandBuilder = new ByteArrayOutputStream();
         try {
             commandBuilder.write(elevator); // First byte in data will be elevator number
@@ -228,13 +230,13 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         public void run(){
             while (true){
 
-                System.out.println(Thread.currentThread().getName()+" Waiting....");
+//                System.out.println(Thread.currentThread().getName()+" Waiting....");
 
                 byte receiveData[] = new byte[100];
                 elevatorUpdatePacket = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     updateReceiveSocket.receive(elevatorUpdatePacket);
-                    printPacketInfo(elevatorUpdatePacket, "received", numMessages);
+//                    printPacketInfo(elevatorUpdatePacket, "received", numMessages);
                 }catch (IOException e){
                     e.printStackTrace();
                     System.exit(1);

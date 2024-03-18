@@ -37,6 +37,8 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
         for(int i =0; i < numElevators; i++){
             elevators[i].start();
         }
+
+        (new ElevatorUpdateSender()).start();
     }
     @Override
     public void run() {
@@ -104,7 +106,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
                     e.printStackTrace();
                     System.exit(1);
                 }
-                System.out.println("ElevatorSubsystem: sending update data...");
+//                System.out.println("ElevatorSubsystem: sending update data...");
 
                 try {
                     sendUpdateSocket.send(sendUpdatePacket);
@@ -117,7 +119,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
                 DatagramPacket schedulerAckPacket = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     sendUpdateSocket.receive(schedulerAckPacket);
-                    System.out.println("ElevatorSubsystem: update acknowledgement received");
+//                    System.out.println("ElevatorSubsystem: update acknowledgement received");
                 }catch (IOException e){
                     e.printStackTrace();
                     System.exit(1);
