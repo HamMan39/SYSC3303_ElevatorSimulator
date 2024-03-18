@@ -1,6 +1,12 @@
 import java.io.IOException;
 import java.net.*;
 
+/** Represents a superclass for the 3 main subsystems (Elevator, Scheduler, Floor)
+ which implement rpc_send(), sendAndReceive(), and receiveAndSend() methods to facilitate
+ sending remote procedure calls over UDP.
+ * @author Areej Mahmoud 101218260
+ * @author Mahnoor Fatima 101192353
+ */
 public class CommunicationRPC {
     DatagramPacket sendPacket, receiveSendPacket, sendReceivePacket, receiveAckPacket;
     DatagramSocket sendReceiveSocket;
@@ -18,7 +24,7 @@ public class CommunicationRPC {
     public CommunicationRPC(int portNum){
         try {
             sendReceiveSocket = new DatagramSocket(portNum);
-            sendReceiveSocket.setSoTimeout(100000);
+            sendReceiveSocket.setSoTimeout(500000);
         }catch (SocketException e){
             e.printStackTrace();
             System.exit(1);
@@ -49,9 +55,7 @@ public class CommunicationRPC {
      */
     public void sendAndReceive(byte[] msg, int port){
         numMessages++;
-        if(msg == null) {
-            return;
-        }
+
         byte receiveData[] = new byte[100];
         //create packet to send to port on the Scheduler
         try {
