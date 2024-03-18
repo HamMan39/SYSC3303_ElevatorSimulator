@@ -30,6 +30,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             e.printStackTrace();
             System.exit(1);
         }
+
+        (new ElevatorSubsystemListener()).start();
     }
     /**
      * Prints information about the DatagramPacket packet.
@@ -93,6 +95,22 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         synchronized (elevatorsStatus) {
+            // Case S4 (see Owen's notes)
+            for (Integer i : sectorElevators) {
+                if (elevatorsStatus.isIdle(i)) {
+                    sendCommand(request, i);
+                    return true;
+                }
+            }
+            // Case S5 (see Owen's notes)
+            for (int i = 0; i < 4; i++) {
+                if (!sectorElevators.contains(i)) {
+                    if ((elevatorsStatus.soonSameDirection(request.getDirection(), i))) {
+                        sendCommand(request, i);
+                        return true;
+                    }
+                }
+            }
             for (Integer i : sectorElevators) {
                 if (elevatorsStatus.sameDirection(request.getDirection(), i)) {
                     sendCommand(request, i);
@@ -115,22 +133,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                     return true;
                 }
             }
-            // Case S4 (see Owen's notes)
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.isIdle(i)) {
-                    sendCommand(request, i);
-                    return true;
-                }
-            }
-            // Case S5 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if ((elevatorsStatus.soonSameDirection(request.getDirection(), i))) {
-                        sendCommand(request, i);
-                        return true;
-                    }
-                }
-            }
+
+
             // Case S6 (see Owen's notes)
             for (int i = 0; i < 4; i++) {
                 if (!sectorElevators.contains(i)) {
@@ -156,6 +160,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
     //TODO implement RPC
     private void sendCommand(Message request, int elevator){
+        System.out.println("---------------");
+        System.out.println(elevator);
         ByteArrayOutputStream commandBuilder = new ByteArrayOutputStream();
         try {
             commandBuilder.write(elevator); // First byte in data will be elevator number
@@ -209,9 +215,52 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
     }
 
+    class ElevatorSubsystemListener extends Thread {
+        private DatagramPacket elevatorUpdatePacket;
+        private DatagramSocket updateReceiveSocket;
+
+        public ElevatorSubsystemListener(){
+            try {
+                updateReceiveSocket = new DatagramSocket(65);
+            } catch (SocketException e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        public void run(){
+            while (true){
+
+//                System.out.println(Thread.currentThread().getName()+" Waiting....");
+
+                byte receiveData[] = new byte[100];
+                elevatorUpdatePacket = new DatagramPacket(receiveData, receiveData.length);
+                try {
+                    updateReceiveSocket.receive(elevatorUpdatePacket);
+//                    printPacketInfo(elevatorUpdatePacket, "received", numMessages);
+                }catch (IOException e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
+                //create packet to send to port on the Scheduler
+                DatagramPacket sendUpdateAckPacket = new DatagramPacket(new byte[0], 0, elevatorUpdatePacket.getAddress(), elevatorUpdatePacket.getPort());
+
+                // Send the acknowledgement to the floor via the floorSocket.
+                try {
+                    floorSocket.send(sendUpdateAckPacket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
+                elevatorsStatus.updateStatus(elevatorUpdatePacket.getData());
+            }
+        }
+    }
+
     public static void main(String[] args) {
         Scheduler scheduler = new Scheduler();
-        Thread schedulerThread= new Thread(scheduler,"Scheduler");
+        Thread schedulerThread= new Thread(() -> scheduler.run(),"Scheduler");
         Thread floorMonitor = new Thread(() -> scheduler.monitorFloor(), "FloorMonitor");
         schedulerThread.start();
         floorMonitor.start();
