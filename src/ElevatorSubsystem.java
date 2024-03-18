@@ -38,8 +38,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     @Override
     public void run() {
         while(true){
-            String s = "This will be the elevator data";
-            receiveAndSend(s.getBytes());
+            receiveAndSend(elevatorData.toByteArray());
 
             byte command[] = receiveSendPacket.getData();
 

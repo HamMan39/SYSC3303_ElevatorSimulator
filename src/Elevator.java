@@ -27,6 +27,8 @@ public class Elevator implements Runnable {
 
     private ElevatorData elevatorData;
 
+    private ElevatorStatus elevatorStatus;
+
     /**
      * Constructor for class Elevator
      *
@@ -41,6 +43,7 @@ public class Elevator implements Runnable {
         this.numFloors = numFloors;
         this.currentState = state.IDLE;
         this.elevatorData = elevatorData;
+        this.elevatorStatus = new ElevatorStatus();
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor
@@ -54,6 +57,8 @@ public class Elevator implements Runnable {
         if((floor-destFloor)>0){
             direction = Message.Directions.DOWN;
         }else{direction = Message.Directions.UP;}
+
+        modifyElevatorData(direction);
 
         lampStatus(direction);
         //TODO: change to separate floor sleeps
@@ -76,6 +81,8 @@ public class Elevator implements Runnable {
                 System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
 
             }
+
+            modifyElevatorData(direction);
 
             // Go through pending messages
             Message message = null;
@@ -196,7 +203,7 @@ public class Elevator implements Runnable {
             currentState = state.IDLE;
             arrivalStatus(floor, currentState);
 
-            Message.Directions direction = null;
+            Message.Directions direction = Message.Directions.IDLE;
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
 //            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
@@ -205,7 +212,7 @@ public class Elevator implements Runnable {
     }
 
     public void lampStatus(Message.Directions direction) {
-        if (direction != null && (direction==Message.Directions.UP || direction==Message.Directions.DOWN)) {
+        if (direction != Message.Directions.IDLE && (direction==Message.Directions.UP || direction==Message.Directions.DOWN)) {
             System.out.println("Lamp ON, elevator going " + direction);
         } else {
             System.out.println("Lamp OFF, elevator has arrived.");
@@ -227,6 +234,10 @@ public class Elevator implements Runnable {
         System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
     }
 
+    public synchronized void modifyElevatorData(Message.Directions direction) {
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(floor);
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
+    }
 }
 
 
