@@ -211,7 +211,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
     public static void main(String[] args) {
         Scheduler scheduler = new Scheduler();
-        Thread schedulerThread= new Thread(scheduler,"Scheduler");
+        Thread schedulerThread= new Thread(() -> scheduler.run(),"Scheduler");
         Thread floorMonitor = new Thread(() -> scheduler.monitorFloor(), "FloorMonitor");
         schedulerThread.start();
         floorMonitor.start();

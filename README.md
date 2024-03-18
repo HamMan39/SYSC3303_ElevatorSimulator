@@ -4,6 +4,28 @@
 **Group Number:** 6
 
 **Team Contributions:**
+Iteration 0:
+1. Mahnoor Fatima, timing measurements
+2. Khola Haseeb, timing measurements
+3. Areej Mahmoud, timing measurements
+4. Owen Petersen, report writing + load/unload calculations + excel input
+5. Nikita Sara Vijay, acceleration/deceleration calculations + timing
+
+Iteration 1:
+1. Mahnoor Fatima, Implemented Scheduler and MessageBox
+2. Khola Haseeb, Implemented Elevator, MessageBoxTest, ElevatorTest and README
+3. Areej Mahmoud, Implemented Floor, Message, SchedulerTest and FloorTest
+4. Owen Petersen, Sequence Diagram
+5. Nikita Sara Vijay, UML Class Diagram
+
+Iteration 2:
+1. Mahnoor Fatima, Updated Scheduler algorithm
+2. Khola Haseeb, Updated scheduler algorithm
+3. Areej Mahmoud, Updated refactored Elevator
+4. Owen Petersen, State machine diagrams + sequence diagram
+5. Nikita Sara Vijay, Implemented Elevator
+
+Iteration 3:
 1. Mahnoor Fatima (101192353), Implemented RPC over UDP in Elevator and CommunicationRPC class
 2. Khola Haseeb (101192363), Implemented ElevatorSubsystem and Elevator
 3. Areej Mahmoud (101218260), Implemented RPC over UDP in Scheduler, Floor and CommunicationRPC class
