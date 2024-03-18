@@ -64,13 +64,12 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 System.exit(1);
             }
             //add receivedData to newRequests queue
-            if(floorReceivePacket.getData() != null){
+            if(floorReceivePacket.getData()!=null){
                 Message newMsg = new Message(floorReceivePacket.getData());
                 newRequests.add(newMsg);
             }else{
                 System.exit(1);
             }
-
 
             //create ack packet to send to floor
             String s = "Ack: received Floor input!";

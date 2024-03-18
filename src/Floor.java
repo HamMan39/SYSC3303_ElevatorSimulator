@@ -75,10 +75,15 @@ public class Floor extends CommunicationRPC implements Runnable{
 
             sendAndReceive(msgBytes, SCHEDULER_PORT);
 
+            //slow things down (wait 5 seconds)
+            try{
+                Thread.sleep(5000);
+            }catch(InterruptedException e){
+                e.printStackTrace();
+            }
+
             System.out.println("Client: Packet sent.\n");
         }
-        byte[] nullArray = null;
-        sendAndReceive(nullArray, SCHEDULER_PORT);
     }
 
     public ArrayList<String> getBuffer(){

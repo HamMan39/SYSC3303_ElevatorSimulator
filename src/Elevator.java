@@ -173,7 +173,7 @@ public class Elevator implements Runnable {
                 outgoingMessages.put(null);
                 return;
             }
-            System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
+            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
 
             if (message.getArrivalFloor() != this.floor) {
