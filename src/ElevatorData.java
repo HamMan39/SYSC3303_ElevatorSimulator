@@ -30,6 +30,10 @@ public class ElevatorData {
         return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.IDLE));
     }
 
+    public ArrayList<ElevatorStatus> getElevatorSubsystemStatus() {
+        return elevatorSubsystemStatus;
+    }
+
     /**
      * updates each elevatorStatus with the information in the byte array
      * @param statusBytes A byte array version of another elevatorData class
