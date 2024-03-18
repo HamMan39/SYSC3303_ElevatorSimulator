@@ -80,6 +80,11 @@ public class Floor extends CommunicationRPC implements Runnable{
         byte[] nullArray = null;
         sendAndReceive(nullArray, SCHEDULER_PORT);
     }
+
+    public ArrayList<String> getBuffer(){
+        return buffer;
+    }
+
     /**
      * Execute the thread operations. Imports data from file
      * and sends/receives messages to and from Scheduler
