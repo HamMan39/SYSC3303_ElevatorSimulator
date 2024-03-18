@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.net.*;
+
 public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
     //Message boxes for communication with Scheduler
@@ -34,6 +37,8 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
         for(int i =0; i < numElevators; i++){
             elevators[i].start();
         }
+
+        (new ElevatorUpdateSender()).start();
     }
     @Override
     public void run() {
@@ -70,6 +75,57 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
             }
         }
 
+    }
+
+    class ElevatorUpdateSender extends Thread {
+        private DatagramPacket sendUpdatePacket;
+        private DatagramSocket sendUpdateSocket;
+        public ElevatorUpdateSender(){
+            try {
+                sendUpdateSocket = new DatagramSocket();
+            } catch (SocketException e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+
+        public void run(){
+            while (true) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
+                byte[] data = elevatorData.toByteArray();
+
+                try {
+                    sendUpdatePacket = new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 65);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+//                System.out.println("ElevatorSubsystem: sending update data...");
+
+                try {
+                    sendUpdateSocket.send(sendUpdatePacket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
+                byte receiveData[] = new byte[100];
+                DatagramPacket schedulerAckPacket = new DatagramPacket(receiveData, receiveData.length);
+                try {
+                    sendUpdateSocket.receive(schedulerAckPacket);
+//                    System.out.println("ElevatorSubsystem: update acknowledgement received");
+                }catch (IOException e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+        }
     }
 
     public static void main(String[] args) {
