@@ -47,6 +47,7 @@ public class Message {
             this.arrivalFloor = inStream.read();
             this.direction = Directions.values()[inStream.read()];
             this.destinationFloor = inStream.read();
+            this.failure = Failures.values()[inStream.read()];
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -87,6 +88,7 @@ public class Message {
             messageBuilder.write(arrivalFloor);
             messageBuilder.write(direction.ordinal());
             messageBuilder.write(destinationFloor);
+            messageBuilder.write(failure.ordinal());
 
         } catch (IOException e) {
             e.printStackTrace();
