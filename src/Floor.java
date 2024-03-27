@@ -36,7 +36,8 @@ public class Floor extends CommunicationRPC implements Runnable{
         }
 
         int destFloor = Integer.valueOf(data[3]);
-        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor);
+        Message.Failures failure = Message.Failures.values()[Integer.parseInt(data[4])];
+        Message newMsg = new Message(timestamp, arrivalFloor, direction, destFloor, failure);
 
         return newMsg;
     }

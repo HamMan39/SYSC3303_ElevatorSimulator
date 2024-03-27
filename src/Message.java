@@ -17,18 +17,21 @@ public class Message {
     Directions direction;
     //Dest Elevator button pressed
     int destinationFloor;
+    private Failures failure;
 
     public enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
+    public enum Failures {NONE, DOORS, STUCK}
 
 
     /**
      * Constructor for class Message.
      * */
-    public Message(String arrivalTime, int arrivalFloor, Directions direction, int destinationFloor) {
+    public Message(String arrivalTime, int arrivalFloor, Directions direction, int destinationFloor, Failures failure) {
         this.arrivalTime = arrivalTime;
         this.arrivalFloor = arrivalFloor;
         this.direction = direction;
         this.destinationFloor = destinationFloor;
+        this.failure = failure;
     }
 
     /**
