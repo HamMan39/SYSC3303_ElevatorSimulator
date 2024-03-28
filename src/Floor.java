@@ -29,7 +29,7 @@ public class Floor extends CommunicationRPC implements Runnable{
         int arrivalFloor = Integer.valueOf(data[1]);
 
         Message.Directions direction;
-        if (data[2].equals("UP")) {
+        if (data[2].compareToIgnoreCase("UP") == 0) {
             direction = Message.Directions.UP;
         } else {
             direction = Message.Directions.DOWN;
