@@ -134,7 +134,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         box1 = new MessageBox(); //incomingElevator box
         box2 = new MessageBox(); //outgoingElevator bpx
-        elevator = new Thread(new ElevatorSubsystem( 4, 20, box1, box2),"ElevatorSubsystem");
+        elevator = new Thread(new ElevatorSubsystem( 4, 22, box1, box2),"ElevatorSubsystem");
         elevator.start();
     }
 }
