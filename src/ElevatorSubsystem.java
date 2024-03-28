@@ -13,7 +13,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     private static final int ELEVATOR_PORT = 23;
 
     /**
-     * Constructor for class ElevatorSubsytem
+     * Constructor for class ElevatorSubsystem
      *
      * @param box3 Incoming messages MessageBox
      * @param box4 Outgoing messages MessageBox
