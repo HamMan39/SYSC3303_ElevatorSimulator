@@ -255,6 +255,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
     class ElevatorFailureListener extends Thread {
         private DatagramSocket failureDumpSocket;
+        private DatagramPacket failureMessage;
         public ElevatorFailureListener(){
             try {
                 this.failureDumpSocket = new DatagramSocket(66);
@@ -264,7 +265,23 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             }
         }
         public void run(){
+            while (true){
+                failureMessage = new DatagramPacket(new byte[100], 100);
+                try {
+                    failureDumpSocket.receive(failureMessage);
+                } catch (IOException e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
 
+                if (failureMessage.getData()[0] == 0){ // Data is a request that needs to be rescheduled
+                    Message rescheduleRequest = new Message(Arrays.copyOfRange(failureMessage.getData(), 1, failureMessage.getLength())); // get the request from the data
+                    newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request
+                } else { // First byte is elevator number that should be removed from active list
+                    activeElevators.remove(failureMessage.getData()[0]);
+                }
+
+            }
         }
     }
 
