@@ -101,9 +101,11 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         synchronized (elevatorsStatus) {
+
+            // Get the current positions of each elevator
             ArrayList<Integer[]> elevatorPositions = new ArrayList<>();
             for (Integer i : activeElevators){
-                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i)});
+                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i)}); //Store it as (elevator number, elevator position)
             }
 
             //Insertion sort algorithm (organize elevators from closest to furthest from request)
@@ -127,15 +129,9 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 }
             }
 
+            //Second try to assign to the closest elevator moving towards the request
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
                 if (elevatorsStatus.sameDirection(request.getDirection(), elevator[0])){ // check if each elevator is going in the same direction
-                    sendCommand(request, elevator[0]);
-                    return true;
-                }
-            }
-
-            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
-                if (elevatorsStatus.soonSameDirection(request.getDirection(), elevator[0])){ // check if each elevator is moving to pick up a different request which is the same direction
                     sendCommand(request, elevator[0]);
                     return true;
                 }

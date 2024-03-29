@@ -19,13 +19,6 @@ public class ElevatorData {
     public boolean sameDirection(Message.Directions requestDirection, int elevator) {
         return (requestDirection.equals(elevatorSubsystemStatus.get(elevator).getCurrentDirection()));
     }
-    public boolean soonSameDirection(Message.Directions requestDirection, int elevator) {
-        if (requestDirection.equals(Message.Directions.UP)){
-            return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.DOWNUP));
-        } else {
-            return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.UPDOWN));
-        }
-    }
     public boolean isIdle(int elevator){
         return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.IDLE));
     }
