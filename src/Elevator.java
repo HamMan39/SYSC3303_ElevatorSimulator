@@ -13,7 +13,7 @@ import java.util.TreeSet;
  */
 public class Elevator implements Runnable {
 
-    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED}
+    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
 
     private state currentState;
 
@@ -235,6 +235,10 @@ public class Elevator implements Runnable {
         }
         currentState = state.DOOR_CLOSED;
         doorClosed(floor, currentState);
+    }
+
+    private void handleTimeout(){
+        //TODO re-work Elevator to store pending requests in a queue before this can work
     }
 
     public Integer getCurrentFloor(){
