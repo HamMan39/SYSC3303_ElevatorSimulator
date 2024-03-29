@@ -32,6 +32,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         }
 
         (new ElevatorSubsystemListener()).start();
+        (new ElevatorFailureListener()).start();
     }
     /**
      * Prints information about the DatagramPacket packet.
@@ -193,17 +194,19 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     }
 
     @Override
+    @SuppressWarnings("InfiniteLoopStatement") //stops IntelliJ complaining about this while loop
     public void run() {
         Iterator<Message> it;
         while(true){
-            it = newRequests.iterator();
-            while(it.hasNext()){
-                Message request = it.next();
-                if (schedule(request)){
-                    it.remove();
+            try {
+                Message request = newRequests.remove(); //Try to get a new request
+                if (!schedule(request)){ //Schedule the request, if it can't be scheduled add it to held requests
+                    heldRequests.add(request);
                 }
-            }
-            // Attempt to schedule requests in wait queue
+            } catch (NoSuchElementException ignored) {} //If newRequests is empty move on
+
+
+            // Attempt to schedule requests in wait queue (requests that couldn't be scheduled the first time)
             it = heldRequests.iterator();
             while (it.hasNext()) {
                 Message request = it.next();
@@ -255,6 +258,21 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
                 elevatorsStatus.updateStatus(elevatorUpdatePacket.getData());
             }
+        }
+    }
+
+    class ElevatorFailureListener extends Thread {
+        private DatagramSocket failureDumpSocket;
+        public ElevatorFailureListener(){
+            try {
+                this.failureDumpSocket = new DatagramSocket(66);
+            } catch (SocketException e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        public void run(){
+
         }
     }
 
