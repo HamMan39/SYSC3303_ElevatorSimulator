@@ -30,6 +30,10 @@ public class ElevatorData {
         return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.IDLE));
     }
 
+    public Integer getElevatorPosition(Integer elevator){
+        return elevatorSubsystemStatus.get(elevator).getCurrentFloor();
+    }
+
     public ArrayList<ElevatorStatus> getElevatorSubsystemStatus() {
         return elevatorSubsystemStatus;
     }
