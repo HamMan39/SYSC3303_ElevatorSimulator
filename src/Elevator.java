@@ -166,6 +166,7 @@ public class Elevator implements Runnable {
      */
     @Override
     public void run() {
+
         while (true) {
             Message message = null;
             // Process pending requests before new ones
@@ -180,12 +181,14 @@ public class Elevator implements Runnable {
                 outgoingMessages.put(null);
                 return;
             }
-            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
+            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
             if (message.getArrivalFloor() != this.floor) {
                 travelFloors(message.getArrivalFloor());
             }
+
+            injectTimeoutFailure(message); //check for timeout failure
 
             currentState = state.DOOR_OPEN;
             doorOpen(floor, currentState);
@@ -196,7 +199,7 @@ public class Elevator implements Runnable {
             } catch (InterruptedException e) {
             }
 
-            injectDoorFailure(message);
+            injectDoorFailure(message); //check for door stuck failure
 
             travelFloors(message.getDestinationFloor()); //travel to destination floor
 
@@ -226,7 +229,6 @@ public class Elevator implements Runnable {
     }
     private void injectDoorFailure(Message msg){
         if (msg.getFailure() == Message.Failures.DOORS){
-            //call handleDoorStuck() method and attempt to fix the fault
             System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
