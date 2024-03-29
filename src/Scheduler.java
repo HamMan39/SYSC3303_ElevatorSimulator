@@ -18,10 +18,15 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     private DatagramSocket elevatorSocket, floorSocket; //For sending ack to elevator subsystem
     private int numMessages = 0;
     private static final int ELEVATOR_PORT = 23; //elevator socket's port number
-    public Scheduler() {
+    private ArrayList<Integer> activeElevators;
+    public Scheduler(int numElevators) {
         heldRequests = new LinkedList<>();
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
+        activeElevators = new ArrayList<Integer>();
+        for (int i = 1; i <= numElevators; i++){
+            activeElevators.add(i);
+        }
 
         try {
             elevatorSocket = new DatagramSocket();
@@ -277,7 +282,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     }
 
     public static void main(String[] args) {
-        Scheduler scheduler = new Scheduler();
+        Scheduler scheduler = new Scheduler(4);
         Thread schedulerThread= new Thread(() -> scheduler.run(),"Scheduler");
         Thread floorMonitor = new Thread(() -> scheduler.monitorFloor(), "FloorMonitor");
         schedulerThread.start();
