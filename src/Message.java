@@ -1,7 +1,6 @@
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * This Class represents a message passed between the scheduler and a SubSystem class.
@@ -17,18 +16,21 @@ public class Message {
     Directions direction;
     //Dest Elevator button pressed
     int destinationFloor;
+    private Failures failure;
 
     public enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
+    public enum Failures {NONE, DOORS, TIMEOUT}
 
 
     /**
      * Constructor for class Message.
      * */
-    public Message(String arrivalTime, int arrivalFloor, Directions direction, int destinationFloor) {
+    public Message(String arrivalTime, int arrivalFloor, Directions direction, int destinationFloor, Failures failure) {
         this.arrivalTime = arrivalTime;
         this.arrivalFloor = arrivalFloor;
         this.direction = direction;
         this.destinationFloor = destinationFloor;
+        this.failure = failure;
     }
 
     /**
@@ -44,6 +46,7 @@ public class Message {
             this.arrivalFloor = inStream.read();
             this.direction = Directions.values()[inStream.read()];
             this.destinationFloor = inStream.read();
+            this.failure = Failures.values()[inStream.read()];
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -67,6 +70,8 @@ public class Message {
         return destinationFloor;
     }
 
+    public Failures getFailure() {return failure;}
+
     @Override
     public String toString() {
         return arrivalTime + " " + arrivalFloor +
@@ -84,6 +89,7 @@ public class Message {
             messageBuilder.write(arrivalFloor);
             messageBuilder.write(direction.ordinal());
             messageBuilder.write(destinationFloor);
+            messageBuilder.write(failure.ordinal());
 
         } catch (IOException e) {
             e.printStackTrace();
