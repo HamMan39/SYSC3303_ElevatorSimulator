@@ -30,6 +30,15 @@ public class ElevatorTest {
 
         // Check if outgoingMessages contains the test message
         assertEquals(message, outgoingMessages.get());
+
+        //Testing Elevator run if Door fault present
+        Message message2 = new Message("15:06:15.0",2, Message.Directions.UP, 4, Message.Failures.DOORS);
+
+        // Add message to incomingMessages
+        incomingMessages.put(message2);
+
+        // Check if outgoingMessages contains the test message
+        assertEquals(message2, outgoingMessages.get());
     }
 
     @Test
@@ -48,6 +57,7 @@ public class ElevatorTest {
         Thread elevatorThread = new Thread(elevator);
         elevatorThread.start();
 
+        // -- Testing with no failures
         Message message = new Message("14:05:15.0",2, Message.Directions.UP, 4, Message.Failures.NONE);
 
         // Add message to incomingMessages
