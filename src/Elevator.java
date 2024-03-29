@@ -7,7 +7,7 @@ import java.util.TreeSet;
  * This Class represents the Elevator which travels between floors according to
  * received messages from the scheduler class, and alerts the Scheduler upon arrival
  * at the destination floor.
- * @author Nikita Sara Vijay (101195009)
+ * @author Nikita Sara Vijay 101195009
  * @author Areej Mahmoud 101218260
  * @author Khola Haseeb 101192363
  */
@@ -61,15 +61,18 @@ public class Elevator implements Runnable {
         modifyElevatorData(direction);
 
         lampStatus(direction);
-        //TODO: change to separate floor sleeps
 
         try {
-            long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
+            //long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
+            long travelTime = (long)(7399.8);
             Thread.sleep(travelTime); //simulate time taken to travel floors
         } catch (InterruptedException e) {
         }
 
         while(floor != destFloor) {
+            try {
+                Thread.sleep(1429);         //simulate time taken to travel one floor
+            } catch (InterruptedException e) {}
 
             if (floor < destFloor) {
                 floor++;
