@@ -187,9 +187,6 @@ public class Elevator implements Runnable {
                 travelFloors(message.getArrivalFloor());
             }
 
-            //Inject the failure if any for this request.
-            injectFailure(message);
-
             currentState = state.DOOR_OPEN;
             doorOpen(floor, currentState);
             lampStatus(message.getDirection());
@@ -198,8 +195,8 @@ public class Elevator implements Runnable {
                 Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
             } catch (InterruptedException e) {
             }
-            currentState = state.DOOR_CLOSED;
-            doorClosed(floor, currentState);
+
+            injectDoorFailure(message);
 
             travelFloors(message.getDestinationFloor()); //travel to destination floor
 
@@ -221,14 +218,23 @@ public class Elevator implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
-    private void injectFailure(Message msg){
+    private void injectTimeoutFailure(Message msg){
         if (msg.getFailure()== Message.Failures.TIMEOUT){
             //call the handleTimeout() method to shut down the elevator
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
-        }else if (msg.getFailure() == Message.Failures.DOORS){
-            //call handleDoorStuck() method and attempt to fix the fault
-            System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting fix...");
         }
+    }
+    private void injectDoorFailure(Message msg){
+        if (msg.getFailure() == Message.Failures.DOORS){
+            //call handleDoorStuck() method and attempt to fix the fault
+            System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting to close ...");
+            try {
+                Thread.sleep(2000); //add a delay for time taken to handle door failure
+            } catch (InterruptedException e) {
+            }
+        }
+        currentState = state.DOOR_CLOSED;
+        doorClosed(floor, currentState);
     }
 
     public Integer getCurrentFloor(){
