@@ -101,55 +101,46 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         synchronized (elevatorsStatus) {
-            // Case S4 (see Owen's notes)
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.isIdle(i)) {
-                    sendCommand(request, i);
-                    return true;
-                }
+            ArrayList<Integer[]> elevatorPositions = new ArrayList<>();
+            for (Integer i : activeElevators){
+                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i)});
             }
-            // Case S5 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if ((elevatorsStatus.soonSameDirection(request.getDirection(), i))) {
-                        sendCommand(request, i);
-                        return true;
-                    }
+
+            //Insertion sort algorithm (organize elevators from closest to furthest from request)
+            int n = elevatorPositions.size();
+            for (int i = 1; i < n; ++i) {
+                Integer[] key = elevatorPositions.get(i);
+                int j = i - 1;
+
+                while (j >= 0 && elevatorPositions.get(j)[1] > key[1]) {
+                    elevatorPositions.set(j + 1, elevatorPositions.get(j));
+                    j = j - 1;
                 }
+                elevatorPositions.set(j + 1, key);
             }
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.sameDirection(request.getDirection(), i)) {
-                    sendCommand(request, i);
-                    return true;
-                }
-            }
-            // Case S2 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if ((elevatorsStatus.sameDirection(request.getDirection(), i))) {
-                        sendCommand(request, i);
-                        return true;
-                    }
-                }
-            }
-            // Case S3 (see Owen's notes)
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.soonSameDirection(request.getDirection(), i)) {
-                    sendCommand(request, i);
+
+            //First try to assign to the closest idle elevator, if there is any idle elevator
+            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
+                if (elevatorsStatus.isIdle(elevator[0])){ // check if each elevator is idle
+                    sendCommand(request, elevator[0]);
                     return true;
                 }
             }
 
-
-            // Case S6 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if (elevatorsStatus.isIdle(i)) {
-                        sendCommand(request, i);
-                        return true;
-                    }
+            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
+                if (elevatorsStatus.sameDirection(request.getDirection(), elevator[0])){ // check if each elevator is going in the same direction
+                    sendCommand(request, elevator[0]);
+                    return true;
                 }
             }
+
+            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
+                if (elevatorsStatus.soonSameDirection(request.getDirection(), elevator[0])){ // check if each elevator is moving to pick up a different request which is the same direction
+                    sendCommand(request, elevator[0]);
+                    return true;
+                }
+            }
+
         }
         return false;
     }
