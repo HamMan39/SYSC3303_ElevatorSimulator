@@ -1,7 +1,6 @@
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * This Class represents a message passed between the scheduler and a SubSystem class.
@@ -20,7 +19,7 @@ public class Message {
     private Failures failure;
 
     public enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
-    public enum Failures {NONE, DOORS, STUCK}
+    public enum Failures {NONE, DOORS, TIMEOUT}
 
 
     /**
@@ -47,6 +46,7 @@ public class Message {
             this.arrivalFloor = inStream.read();
             this.direction = Directions.values()[inStream.read()];
             this.destinationFloor = inStream.read();
+            this.failure = Failures.values()[inStream.read()];
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -70,6 +70,8 @@ public class Message {
         return destinationFloor;
     }
 
+    public Failures getFailure() {return failure;}
+
     @Override
     public String toString() {
         return arrivalTime + " " + arrivalFloor +
@@ -87,6 +89,7 @@ public class Message {
             messageBuilder.write(arrivalFloor);
             messageBuilder.write(direction.ordinal());
             messageBuilder.write(destinationFloor);
+            messageBuilder.write(failure.ordinal());
 
         } catch (IOException e) {
             e.printStackTrace();

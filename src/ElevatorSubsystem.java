@@ -13,7 +13,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     private static final int ELEVATOR_PORT = 23;
 
     /**
-     * Constructor for class ElevatorSubsytem
+     * Constructor for class ElevatorSubsystem
      *
      * @param box3 Incoming messages MessageBox
      * @param box4 Outgoing messages MessageBox
@@ -134,7 +134,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         box1 = new MessageBox(); //incomingElevator box
         box2 = new MessageBox(); //outgoingElevator bpx
-        elevator = new Thread(new ElevatorSubsystem( 4, 20, box1, box2),"ElevatorSubsystem");
+        elevator = new Thread(new ElevatorSubsystem( 4, 22, box1, box2),"ElevatorSubsystem");
         elevator.start();
     }
 }
