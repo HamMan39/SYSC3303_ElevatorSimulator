@@ -1,10 +1,10 @@
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-/**
- * Unit tests for Class Elevator
- * @author Khola Haseeb 101192363, Mahnoor Fatima 101192353
- */
-public class ElevatorTest {
+//import org.junit.jupiter.api.Test;
+//import static org.junit.jupiter.api.Assertions.*;
+///**
+// * Unit tests for Class Elevator
+// * @author Khola Haseeb 101192363, Mahnoor Fatima 101192353
+// */
+//public class ElevatorTest {
 //
 //    @Test
 //    public void testRun(){
@@ -12,15 +12,18 @@ public class ElevatorTest {
 //        //create MessageBox instances for testing
 //        MessageBox incomingMessages = new MessageBox();
 //        MessageBox outgoingMessages = new MessageBox();
+//        ElevatorData elevatorData;
+//
+//        elevatorData = new ElevatorData();
 //
 //        // Create Elevator instance
-//        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages);
+//        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages,elevatorData);
 //
 //        // create thread for elevator and start it
 //        Thread elevatorThread = new Thread(elevator);
 //        elevatorThread.start();
 //
-//        Message message = new Message("14:05:15.0",2, "Up", 4);
+//        Message message = new Message("14:05:15.0",2, Message.Directions.UP, 4);
 //
 //        // Add message to incomingMessages
 //        incomingMessages.put(message);
@@ -34,15 +37,18 @@ public class ElevatorTest {
 //        //create MessageBox instances for testing
 //        MessageBox incomingMessages = new MessageBox();
 //        MessageBox outgoingMessages = new MessageBox();
+//        ElevatorData elevatorData;
+//
+//        elevatorData = new ElevatorData();
 //
 //        // Create Elevator instance
-//        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages);
+//        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages, elevatorData);
 //
 //        // create thread for elevator and start it
 //        Thread elevatorThread = new Thread(elevator);
 //        elevatorThread.start();
 //
-//        Message message = new Message("14:05:15.0",2, "Up", 4);
+//        Message message = new Message("14:05:15.0",2, Message.Directions.UP, 4);
 //
 //        // Add message to incomingMessages
 //        incomingMessages.put(message);
@@ -57,4 +63,4 @@ public class ElevatorTest {
 //        // Check if the destination floor matches
 //        assertEquals(message.getDestinationFloor(), elevator.getCurrentFloor());
 //    }
-}
+//}

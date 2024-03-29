@@ -30,7 +30,7 @@ Iteration 3:
 2. Khola Haseeb (101192363), Implemented ElevatorSubsystem and Elevator
 3. Areej Mahmoud (101218260), Implemented RPC over UDP in Scheduler, Floor and CommunicationRPC class
 4. Owen Petersen (101233850),  Implemented Scheduler algorithm and ElevatorData
-5. Nikita Sarza Vijay (101195009), Implemented Elevator PendingFloors Algorithm and ElevatorSubsystem
+5. Nikita Sara Vijay (101195009), Implemented Elevator PendingFloors Algorithm and ElevatorSubsystem
 
 **Project Iteration 3**
 

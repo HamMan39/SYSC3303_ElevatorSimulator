@@ -18,10 +18,15 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     private DatagramSocket elevatorSocket, floorSocket; //For sending ack to elevator subsystem
     private int numMessages = 0;
     private static final int ELEVATOR_PORT = 23; //elevator socket's port number
-    public Scheduler() {
+    private ArrayList<Integer> activeElevators;
+    public Scheduler(int numElevators) {
         heldRequests = new LinkedList<>();
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
+        activeElevators = new ArrayList<Integer>();
+        for (int i = 1; i <= numElevators; i++){
+            activeElevators.add(i);
+        }
 
         try {
             elevatorSocket = new DatagramSocket();
@@ -32,6 +37,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         }
 
         (new ElevatorSubsystemListener()).start();
+        (new ElevatorFailureListener()).start();
     }
     /**
      * Prints information about the DatagramPacket packet.
@@ -91,59 +97,46 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         }
     }
 
-    private boolean schedule(Message request){
+    public boolean schedule(Message request){
         ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         synchronized (elevatorsStatus) {
-            // Case S4 (see Owen's notes)
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.isIdle(i)) {
-                    sendCommand(request, i);
-                    return true;
-                }
+
+            // Get the current positions of each elevator
+            ArrayList<Integer[]> elevatorPositions = new ArrayList<>();
+            for (Integer i : activeElevators){
+                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i)}); //Store it as (elevator number, elevator position)
             }
-            // Case S5 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if ((elevatorsStatus.soonSameDirection(request.getDirection(), i))) {
-                        sendCommand(request, i);
-                        return true;
-                    }
+
+            //Insertion sort algorithm (organize elevators from closest to furthest from request)
+            int n = elevatorPositions.size();
+            for (int i = 1; i < n; ++i) {
+                Integer[] key = elevatorPositions.get(i);
+                int j = i - 1;
+
+                while (j >= 0 && elevatorPositions.get(j)[1] > key[1]) {
+                    elevatorPositions.set(j + 1, elevatorPositions.get(j));
+                    j = j - 1;
                 }
+                elevatorPositions.set(j + 1, key);
             }
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.sameDirection(request.getDirection(), i)) {
-                    sendCommand(request, i);
-                    return true;
-                }
-            }
-            // Case S2 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if ((elevatorsStatus.sameDirection(request.getDirection(), i))) {
-                        sendCommand(request, i);
-                        return true;
-                    }
-                }
-            }
-            // Case S3 (see Owen's notes)
-            for (Integer i : sectorElevators) {
-                if (elevatorsStatus.soonSameDirection(request.getDirection(), i)) {
-                    sendCommand(request, i);
+
+            //First try to assign to the closest idle elevator, if there is any idle elevator
+            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
+                if (elevatorsStatus.isIdle(elevator[0])){ // check if each elevator is idle
+                    sendCommand(request, elevator[0]);
                     return true;
                 }
             }
 
-
-            // Case S6 (see Owen's notes)
-            for (int i = 0; i < 4; i++) {
-                if (!sectorElevators.contains(i)) {
-                    if (elevatorsStatus.isIdle(i)) {
-                        sendCommand(request, i);
-                        return true;
-                    }
+            //Second try to assign to the closest elevator moving towards the request
+            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
+                if (elevatorsStatus.sameDirection(request.getDirection(), elevator[0])){ // check if each elevator is going in the same direction
+                    sendCommand(request, elevator[0]);
+                    return true;
                 }
             }
+
         }
         return false;
     }
@@ -193,17 +186,19 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     }
 
     @Override
+    @SuppressWarnings("InfiniteLoopStatement") //stops IntelliJ complaining about this while loop
     public void run() {
         Iterator<Message> it;
         while(true){
-            it = newRequests.iterator();
-            while(it.hasNext()){
-                Message request = it.next();
-                if (schedule(request)){
-                    it.remove();
+            try {
+                Message request = newRequests.remove(); //Try to get a new request
+                if (!schedule(request)){ //Schedule the request, if it can't be scheduled add it to held requests
+                    heldRequests.add(request);
                 }
-            }
-            // Attempt to schedule requests in wait queue
+            } catch (NoSuchElementException ignored) {} //If newRequests is empty move on
+
+
+            // Attempt to schedule requests in wait queue (requests that couldn't be scheduled the first time)
             it = heldRequests.iterator();
             while (it.hasNext()) {
                 Message request = it.next();
@@ -258,8 +253,40 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         }
     }
 
+    class ElevatorFailureListener extends Thread {
+        private DatagramSocket failureDumpSocket;
+        private DatagramPacket failureMessage;
+        public ElevatorFailureListener(){
+            try {
+                this.failureDumpSocket = new DatagramSocket(66);
+            } catch (SocketException e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        public void run(){
+            while (true){
+                failureMessage = new DatagramPacket(new byte[100], 100);
+                try {
+                    failureDumpSocket.receive(failureMessage);
+                } catch (IOException e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
+                if (failureMessage.getData()[0] == 0){ // Data is a request that needs to be rescheduled
+                    Message rescheduleRequest = new Message(Arrays.copyOfRange(failureMessage.getData(), 1, failureMessage.getLength())); // get the request from the data
+                    newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request
+                } else { // First byte is elevator number that should be removed from active list
+                    activeElevators.remove(failureMessage.getData()[0]);
+                }
+
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        Scheduler scheduler = new Scheduler();
+        Scheduler scheduler = new Scheduler(4);
         Thread schedulerThread= new Thread(() -> scheduler.run(),"Scheduler");
         Thread floorMonitor = new Thread(() -> scheduler.monitorFloor(), "FloorMonitor");
         schedulerThread.start();

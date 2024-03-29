@@ -13,7 +13,7 @@ import java.util.TreeSet;
  */
 public class Elevator implements Runnable {
 
-    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED}
+    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
 
     private state currentState;
 
@@ -166,6 +166,7 @@ public class Elevator implements Runnable {
      */
     @Override
     public void run() {
+
         while (true) {
             Message message = null;
             // Process pending requests before new ones
@@ -180,12 +181,14 @@ public class Elevator implements Runnable {
                 outgoingMessages.put(null);
                 return;
             }
-            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
+            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
             if (message.getArrivalFloor() != this.floor) {
                 travelFloors(message.getArrivalFloor());
             }
+
+            injectTimeoutFailure(message); //check for timeout failure
 
             currentState = state.DOOR_OPEN;
             doorOpen(floor, currentState);
@@ -195,8 +198,8 @@ public class Elevator implements Runnable {
                 Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
             } catch (InterruptedException e) {
             }
-            currentState = state.DOOR_CLOSED;
-            doorClosed(floor, currentState);
+
+            injectDoorFailure(message); //check for door stuck failure
 
             travelFloors(message.getDestinationFloor()); //travel to destination floor
 
@@ -217,6 +220,27 @@ public class Elevator implements Runnable {
         } else {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
+    }
+    private void injectTimeoutFailure(Message msg){
+        if (msg.getFailure()== Message.Failures.TIMEOUT){
+            //call the handleTimeout() method to shut down the elevator
+            System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
+        }
+    }
+    private void injectDoorFailure(Message msg){
+        if (msg.getFailure() == Message.Failures.DOORS){
+            System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting to close ...");
+            try {
+                Thread.sleep(2000); //add a delay for time taken to handle door failure
+            } catch (InterruptedException e) {
+            }
+        }
+        currentState = state.DOOR_CLOSED;
+        doorClosed(floor, currentState);
+    }
+
+    private void handleTimeout(){
+        //TODO re-work Elevator to store pending requests in a queue before this can work
     }
 
     public Integer getCurrentFloor(){
