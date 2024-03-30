@@ -105,7 +105,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             // Get the current positions of each elevator
             ArrayList<Integer[]> elevatorPositions = new ArrayList<>();
             for (Integer i : activeElevators){
-                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i)}); //Store it as (elevator number, elevator position)
+                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i - 1)}); //Store it as (elevator number, elevator position)
             }
 
             //Insertion sort algorithm (organize elevators from closest to furthest from request)
