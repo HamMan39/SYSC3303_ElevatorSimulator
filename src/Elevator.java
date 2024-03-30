@@ -7,7 +7,7 @@ import java.util.TreeSet;
  * This Class represents the Elevator which travels between floors according to
  * received messages from the scheduler class, and alerts the Scheduler upon arrival
  * at the destination floor.
- * @author Nikita Sara Vijay (101195009)
+ * @author Nikita Sara Vijay 101195009
  * @author Areej Mahmoud 101218260
  * @author Khola Haseeb 101192363
  */
@@ -44,6 +44,7 @@ public class Elevator implements Runnable {
         this.currentState = state.IDLE;
         this.elevatorData = elevatorData;
         this.elevatorStatus = new ElevatorStatus();
+        this.pendingMessages = new ArrayList<>();
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor
@@ -61,25 +62,27 @@ public class Elevator implements Runnable {
         modifyElevatorData(direction);
 
         lampStatus(direction);
-        //TODO: change to separate floor sleeps
 
         try {
-            long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
+            long travelTime = (long)(7399.8);
             Thread.sleep(travelTime); //simulate time taken to travel floors
         } catch (InterruptedException e) {
         }
 
         while(floor != destFloor) {
+            currentState = state.MOVING;
+            try {
+                Thread.sleep(1429);         //simulate time taken to travel one floor
+            } catch (InterruptedException e) {}
 
             if (floor < destFloor) {
                 floor++;
                 direction = Message.Directions.UP;
-                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
+                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
             } else {
                 floor--;
                 direction = Message.Directions.DOWN;
-                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
-
+                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
             }
 
             modifyElevatorData(direction);
@@ -88,10 +91,8 @@ public class Elevator implements Runnable {
             Message message = null;
             int n;
 
-            if (pendingMessages != null) {
-                n = pendingMessages.size();
-
-
+            n = pendingMessages.size();
+            
             for (int i = 0; i < n; i++) {
                 message = pendingMessages.remove(0);
 
@@ -107,6 +108,8 @@ public class Elevator implements Runnable {
 
                 // Request can be processed, so add a stop for it
                 pendingStops.add(message.getArrivalFloor());
+                System.out.println("---" + Thread.currentThread().getName() + " executing request from Scheduler : " + message);
+
                 // Check if this request will result in modifying the destination, and add a stop accordingly
                 if (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                         || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
@@ -144,20 +147,22 @@ public class Elevator implements Runnable {
             Integer first = null;
             // The pending stops is in sorted order
             // If it is going up, processing will be done in ascending order, for going down, it will be descending
-            if(direction == Message.Directions.UP)
-                first = pendingStops.first();
-            else
-                first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
+            if(!pendingStops.isEmpty()) {
+                 if (direction == Message.Directions.UP)
+                     first = pendingStops.first();
+                 else
+                     first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
+            }
             if(first == null || first != floor)
                 continue; // no stop at current floor
 
-            doorOpen(floor, currentState);
+            injectTimeoutFailure(message); //check for timeout failure
+            loadPassenger(floor);
+            injectDoorFailure(message); //check for door stuck failure
+
             // stop at current floor
             pendingStops.remove(first);
         }
-        }
-
-   //     floor= destFloor; //arrive at destFloor
     }
 
     /**
@@ -190,17 +195,8 @@ public class Elevator implements Runnable {
 
             injectTimeoutFailure(message); //check for timeout failure
 
-            currentState = state.DOOR_OPEN;
-            doorOpen(floor, currentState);
-            lampStatus(message.getDirection());
-
-            try {
-                Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
-            } catch (InterruptedException e) {
-            }
-
+            loadPassenger(floor);
             injectDoorFailure(message); //check for door stuck failure
-
             travelFloors(message.getDestinationFloor()); //travel to destination floor
 
             currentState = state.IDLE;
@@ -209,8 +205,6 @@ public class Elevator implements Runnable {
             Message.Directions direction = Message.Directions.IDLE;
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
-//            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
-
         }
     }
 
@@ -224,12 +218,12 @@ public class Elevator implements Runnable {
     private void injectTimeoutFailure(Message msg){
         if (msg.getFailure()== Message.Failures.TIMEOUT){
             //call the handleTimeout() method to shut down the elevator
-            System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
+            System.out.println(Thread.currentThread().getName() + " TIMEOUT failure. Shutting down...");
         }
     }
     private void injectDoorFailure(Message msg){
         if (msg.getFailure() == Message.Failures.DOORS){
-            System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting to close ...");
+            System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
@@ -247,6 +241,18 @@ public class Elevator implements Runnable {
         return floor;
     }
 
+    public void loadPassenger(int floor) {
+        currentState = state.DOOR_OPEN;
+        doorOpen(floor, currentState);
+        Message.Directions direction = Message.Directions.IDLE;
+        lampStatus(direction);
+        try {
+            Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
+        } catch (InterruptedException e) {
+        }
+
+    }
+
     public void doorOpen(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
@@ -254,6 +260,7 @@ public class Elevator implements Runnable {
     public void doorClosed(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
+
     public void arrivalStatus(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
     }
