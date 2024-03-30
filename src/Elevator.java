@@ -44,6 +44,7 @@ public class Elevator implements Runnable {
         this.currentState = state.IDLE;
         this.elevatorData = elevatorData;
         this.elevatorStatus = new ElevatorStatus();
+        this.pendingMessages = new ArrayList<>();
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor
@@ -77,12 +78,11 @@ public class Elevator implements Runnable {
             if (floor < destFloor) {
                 floor++;
                 direction = Message.Directions.UP;
-                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
+                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
             } else {
                 floor--;
                 direction = Message.Directions.DOWN;
-                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction);
-
+                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
             }
 
             modifyElevatorData(direction);
@@ -91,8 +91,7 @@ public class Elevator implements Runnable {
             Message message = null;
             int n;
 
-            if (pendingMessages != null) {
-                n = pendingMessages.size();
+            n = pendingMessages.size();
 
 
             for (int i = 0; i < n; i++) {
@@ -147,17 +146,18 @@ public class Elevator implements Runnable {
             Integer first = null;
             // The pending stops is in sorted order
             // If it is going up, processing will be done in ascending order, for going down, it will be descending
-            if(direction == Message.Directions.UP)
-                first = pendingStops.first();
-            else
-                first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
+            if(!pendingStops.isEmpty()) {
+                 if (direction == Message.Directions.UP)
+                     first = pendingStops.first();
+                 else
+                     first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
+            }
             if(first == null || first != floor)
                 continue; // no stop at current floor
 
             doorOpen(floor, currentState);
             // stop at current floor
             pendingStops.remove(first);
-        }
         }
 
    //     floor= destFloor; //arrive at destFloor
@@ -195,6 +195,7 @@ public class Elevator implements Runnable {
 
             currentState = state.DOOR_OPEN;
             doorOpen(floor, currentState);
+
             lampStatus(message.getDirection());
 
             try {
@@ -237,7 +238,6 @@ public class Elevator implements Runnable {
     public Integer getCurrentFloor(){
         return floor;
     }
-
     public void doorOpen(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
@@ -245,6 +245,7 @@ public class Elevator implements Runnable {
     public void doorClosed(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
+
     public void arrivalStatus(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
     }
