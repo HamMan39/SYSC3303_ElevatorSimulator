@@ -1,4 +1,7 @@
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeoutException;
+
 import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for Class Elevator
@@ -68,7 +71,11 @@ public class ElevatorTest {
         assertNotEquals(message.getDestinationFloor(), elevator.getCurrentFloor());
 
         //Travel to the destination floor
-        elevator.travelFloors(message.getDestinationFloor());
+        try {
+            elevator.travelFloors(message.getDestinationFloor());
+        } catch (TimeoutException e) {
+            // error will never happen here
+        }
 
         // Check if the destination floor matches
         assertEquals(message.getDestinationFloor(), elevator.getCurrentFloor());

@@ -1,6 +1,12 @@
-import java.util.ArrayList;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import javax.xml.crypto.Data;
+
+import static java.lang.Math.abs;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This Class represents the Elevator which travels between floors according to
@@ -10,7 +16,7 @@ import java.util.TreeSet;
  * @author Areej Mahmoud 101218260
  * @author Khola Haseeb 101192363
  */
-public class Elevator implements Runnable {
+public class Elevator extends CommunicationRPC implements Runnable {
 
     private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
 
@@ -49,7 +55,7 @@ public class Elevator implements Runnable {
      * Simulate Elevator travelling from current floor to destFloor
      * @param destFloor the destination floor.
      */
-    public void travelFloors(int destFloor){
+    public void travelFloors(int destFloor) throws TimeoutException {
         currentState = state.MOVING;
         SortedSet<Integer> pendingStops = new TreeSet<>();
         System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
@@ -156,6 +162,7 @@ public class Elevator implements Runnable {
                 continue; // no stop at current floor
 
             injectTimeoutFailure(message); //check for timeout failure
+
             loadPassenger(floor);
             injectDoorFailure(message); //check for door stuck failure
 
@@ -189,14 +196,27 @@ public class Elevator implements Runnable {
             System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
             if (message.getArrivalFloor() != this.floor) {
-                travelFloors(message.getArrivalFloor());
+                try {
+                    travelFloors(message.getArrivalFloor());
+                } catch (TimeoutException e) {
+                    break; // if a timeout failure occurs, stop the elevator
+                }
             }
 
-            injectTimeoutFailure(message); //check for timeout failure
+            try {
+                injectTimeoutFailure(message); //check for timeout failure
+            } catch (TimeoutException e) {
+                break; // if a timeout failure occurs, stop the elevator
+            }
 
             loadPassenger(floor);
             injectDoorFailure(message); //check for door stuck failure
-            travelFloors(message.getDestinationFloor()); //travel to destination floor
+
+            try {
+                travelFloors(message.getDestinationFloor()); //travel to destination floor
+            } catch (TimeoutException e) {
+                break; // if a timeout failure occurs, stop the elevator
+            }
 
             currentState = state.IDLE;
             arrivalStatus(floor, currentState);
@@ -214,10 +234,11 @@ public class Elevator implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
-    private void injectTimeoutFailure(Message msg){
+    private void injectTimeoutFailure(Message msg) throws TimeoutException {
         if (msg.getFailure()== Message.Failures.TIMEOUT){
-            //call the handleTimeout() method to shut down the elevator
-            System.out.println(Thread.currentThread().getName() + " TIMEOUT failure. Shutting down...");
+            handleTimeout();
+            System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
+            throw new TimeoutException();
         }
     }
     private void injectDoorFailure(Message msg){
@@ -233,7 +254,20 @@ public class Elevator implements Runnable {
     }
 
     private void handleTimeout(){
-        //TODO re-work Elevator to store pending requests in a queue before this can work
+         sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
+
+        // send messages back to scheduler to be rescheduled
+        for (Message m: pendingMessages){
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            byteStream.write(0);
+            try {
+                byteStream.write(m.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            sendAndReceive(byteStream.toByteArray(), 66);
+        }
     }
 
     public Integer getCurrentFloor(){
