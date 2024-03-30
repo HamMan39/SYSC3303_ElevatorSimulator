@@ -1,5 +1,5 @@
 
-# Iteration 3 - SYSC3303 A4 - Elevator Real-time System Simulator
+# Iteration 4 - SYSC3303 A4 - Elevator Real-time System Simulator
 ## Overview
 **Group Number:** 6
 
@@ -42,9 +42,9 @@ Iteration 4:
 **Project Iteration 4**
 
 This Java project simulates an elevator system with 3 main subsystems - Elevator, Floor, and Scheduler. The Elevator moves between floors, the Floor subsystem reads input data from a file, and the Scheduler manages the communication between the Elevator and Floor.
-Elevator  Class. Iteration 3 implements Remote Procedure Calls over UDP to communicate between the main Thread. The Elevator Subsystem handles 4 separate elevators in a 22 floor building, receiving scheduled requests from 
+Elevator  Class. Iteration 3 implemented Remote Procedure Calls over UDP to communicate between the main Thread. The Elevator Subsystem handles 4 separate elevators in a 22 floor building, receiving scheduled requests from 
 the Scheduler and Distributing them to the respective elevators. The input to the system is through the Floor class which reads, passenger Floor requests from an input file
-and sends them to the Scheduler Thread to schedule. The system also simulates failures
+and sends them to the Scheduler Thread to schedule. In Iteration 4, the system now simulates failures
 by injecting Door_Stuck or Timeout failures through the input file and transient and hard faults accordingly.
 
 ## Installation
