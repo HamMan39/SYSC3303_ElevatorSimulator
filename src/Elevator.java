@@ -92,8 +92,7 @@ public class Elevator implements Runnable {
             int n;
 
             n = pendingMessages.size();
-
-
+            
             for (int i = 0; i < n; i++) {
                 message = pendingMessages.remove(0);
 
