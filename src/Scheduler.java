@@ -24,7 +24,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         newRequests = new ConcurrentLinkedQueue<>();
         elevatorsStatus = new ElevatorData();
         activeElevators = new ArrayList<Integer>();
-        for (int i = 1; i <= numElevators; i++){
+        for (int i = 0; i < numElevators; i++){
             activeElevators.add(i);
         }
 
@@ -105,7 +105,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             // Get the current positions of each elevator
             ArrayList<Integer[]> elevatorPositions = new ArrayList<>();
             for (Integer i : activeElevators){
-                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i - 1)}); //Store it as (elevator number, elevator position)
+                elevatorPositions.add(new Integer[] {i, elevatorsStatus.getElevatorPosition(i)}); //Store it as (elevator number, elevator position)
             }
 
             //Insertion sort algorithm (organize elevators from closest to furthest from request)
@@ -120,6 +120,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 }
                 elevatorPositions.set(j + 1, key);
             }
+
+            System.out.println(Arrays.toString(elevatorsStatus.toByteArray()));
 
             //First try to assign to the closest idle elevator, if there is any idle elevator
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest

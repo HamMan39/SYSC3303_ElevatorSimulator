@@ -20,7 +20,7 @@ public class ElevatorData {
         return (requestDirection.equals(elevatorSubsystemStatus.get(elevator).getCurrentDirection()));
     }
     public boolean isIdle(int elevator){ // elevator should be elevator number, not index
-        return (elevatorSubsystemStatus.get(elevator - 1).getCurrentDirection().equals(Message.Directions.IDLE));
+        return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.IDLE));
     }
 
     public Integer getElevatorPosition(Integer elevator){
