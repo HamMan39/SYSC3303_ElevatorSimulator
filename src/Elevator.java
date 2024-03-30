@@ -157,7 +157,6 @@ public class Elevator implements Runnable {
                 continue; // no stop at current floor
 
             injectTimeoutFailure(message); //check for timeout failure
-
             loadPassenger(floor);
             injectDoorFailure(message); //check for door stuck failure
 
