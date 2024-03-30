@@ -19,8 +19,8 @@ public class ElevatorData {
     public boolean sameDirection(Message.Directions requestDirection, int elevator) {
         return (requestDirection.equals(elevatorSubsystemStatus.get(elevator).getCurrentDirection()));
     }
-    public boolean isIdle(int elevator){
-        return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.IDLE));
+    public boolean isIdle(int elevator){ // elevator should be elevator number, not index
+        return (elevatorSubsystemStatus.get(elevator - 1).getCurrentDirection().equals(Message.Directions.IDLE));
     }
 
     public Integer getElevatorPosition(Integer elevator){
@@ -75,7 +75,7 @@ class ElevatorStatus {
     public int getCurrentFloor(){return currentFloor;}
     public Message.Directions getCurrentDirection(){return currentDirection;}
     public int getCurrentLoad(){return currentLoad;}
-    public void setCurrentFloor(int newFloor){currentLoad = newFloor;}
+    public void setCurrentFloor(int newFloor){currentFloor = newFloor;}
     public void setCurrentDirection(Message.Directions newDirection){currentDirection = newDirection;}
     public void setCurrentLoad(int newLoad){currentLoad = newLoad;}
     public byte[] toByteArray(){
