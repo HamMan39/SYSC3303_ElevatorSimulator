@@ -1,4 +1,3 @@
-import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -254,15 +253,15 @@ public class Elevator implements Runnable {
     }
 
     public void doorOpen(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>"+ new TimeStamp().getTimestamp() + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
 
     public void doorClosed(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
 
     public void arrivalStatus(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+        System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
     }
 
     public synchronized void modifyElevatorData(Message.Directions direction) {
