@@ -63,16 +63,10 @@ public class Elevator implements Runnable {
 
         lampStatus(direction);
 
-        try {
-            //long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
-            long travelTime = (long)(7399.8);
-            Thread.sleep(travelTime); //simulate time taken to travel floors
-        } catch (InterruptedException e) {
-        }
-
         while(floor != destFloor) {
             try {
-                Thread.sleep(1429);         //simulate time taken to travel one floor
+                long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
+                Thread.sleep(travelTime); //simulate time taken to travel floors
             } catch (InterruptedException e) {}
 
             if (floor < destFloor) {
