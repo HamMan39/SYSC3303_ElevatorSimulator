@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This Class represents the Elevator which travels between floors according to
@@ -54,7 +55,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * Simulate Elevator travelling from current floor to destFloor
      * @param destFloor the destination floor.
      */
-    public void travelFloors(int destFloor){
+    public void travelFloors(int destFloor) throws TimeoutException {
         currentState = state.MOVING;
         SortedSet<Integer> pendingStops = new TreeSet<>();
         System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
@@ -195,15 +196,27 @@ public class Elevator extends CommunicationRPC implements Runnable {
             System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
             if (message.getArrivalFloor() != this.floor) {
-                travelFloors(message.getArrivalFloor());
+                try {
+                    travelFloors(message.getArrivalFloor());
+                } catch (TimeoutException e) {
+                    break; // if a timeout failure occurs, stop the elevator
+                }
             }
 
-            injectTimeoutFailure(message); //check for timeout failure
+            try {
+                injectTimeoutFailure(message); //check for timeout failure
+            } catch (TimeoutException e) {
+                break; // if a timeout failure occurs, stop the elevator
+            }
 
             loadPassenger(floor);
             injectDoorFailure(message); //check for door stuck failure
 
-            travelFloors(message.getDestinationFloor()); //travel to destination floor
+            try {
+                travelFloors(message.getDestinationFloor()); //travel to destination floor
+            } catch (TimeoutException e) {
+                break; // if a timeout failure occurs, stop the elevator
+            }
 
             currentState = state.IDLE;
             arrivalStatus(floor, currentState);
@@ -222,10 +235,11 @@ public class Elevator extends CommunicationRPC implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
-    private void injectTimeoutFailure(Message msg){
+    private void injectTimeoutFailure(Message msg) throws TimeoutException {
         if (msg.getFailure()== Message.Failures.TIMEOUT){
             handleTimeout();
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
+            throw new TimeoutException();
         }
     }
     private void injectDoorFailure(Message msg){
