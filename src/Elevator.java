@@ -259,7 +259,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         // send messages back to scheduler to be rescheduled
         for (Message m: pendingMessages){
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            byteStream.write(0);
+            byteStream.write(-1);
             try {
                 byteStream.write(m.toByteArray());
             } catch (IOException e) {
