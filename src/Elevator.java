@@ -224,7 +224,6 @@ public class Elevator extends CommunicationRPC implements Runnable {
             Message.Directions direction = Message.Directions.IDLE;
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
-//            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
         }
     }
 
@@ -244,7 +243,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
     private void injectDoorFailure(Message msg){
         if (msg.getFailure() == Message.Failures.DOORS){
-            System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting to close ...");
+            System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
@@ -288,15 +287,15 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     public void doorOpen(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>"+ new TimeStamp().getTimestamp() + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
 
     public void doorClosed(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
 
     public void arrivalStatus(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+        System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
     }
 
     public synchronized void modifyElevatorData(Message.Directions direction) {

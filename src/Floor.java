@@ -25,7 +25,7 @@ public class Floor extends CommunicationRPC implements Runnable{
     public Message createMessage(String str){
         System.out.println(str);
         String[] data = str.split(" ");
-        String timestamp = data[0];
+        String timestamp = new TimeStamp().getTimestamp();
         int arrivalFloor = Integer.valueOf(data[1]);
 
         Message.Directions direction;
