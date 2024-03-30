@@ -33,9 +33,9 @@ Iteration 3:
 5. Nikita Sara Vijay (101195009), Implemented Elevator PendingFloors Algorithm and ElevatorSubsystem
 
 Iteration 4:
-1. Mahnoor Fatima (101192353), Updated FloorTest and MessageTest classes
+1. Mahnoor Fatima (101192353), Updated FloorTest and MessageTest, Drew Timing Diagrams
 2. Khola Haseeb (101192363), Updated ElevatorTest class 
-3. Areej Mahmoud (101218260), Injecting failures into Elevator thread and updatedMessageBoxTest
+3. Areej Mahmoud (101218260), Implemented injecting failures into Elevator, updatedMessageBoxTest and Timestamps
 4. Owen Petersen (101233850),  Implemented re-scheduling failed elevator requests and updated ElevatorData
 5. Nikita Sara Vijay (101195009), Updated Elevator PendingFloors Algorithm for efficiency
 

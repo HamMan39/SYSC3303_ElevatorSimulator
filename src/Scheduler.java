@@ -121,7 +121,6 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 elevatorPositions.set(j + 1, key);
             }
 
-            System.out.println(Arrays.toString(elevatorsStatus.toByteArray()));
 
             //First try to assign to the closest idle elevator, if there is any idle elevator
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
@@ -276,7 +275,18 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                     System.exit(1);
                 }
 
-                if (failureMessage.getData()[0] == 0){ // Data is a request that needs to be rescheduled
+                //create packet to send to port on the Scheduler
+                DatagramPacket sendFailureAckPacket = new DatagramPacket(new byte[0], 0, failureMessage.getAddress(), failureMessage.getPort());
+
+                // Send the acknowledgement to the floor via the floorSocket.
+                try {
+                    floorSocket.send(sendFailureAckPacket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+                if (failureMessage.getData()[0] == -1){ // Data is a request that needs to be rescheduled
+
                     Message rescheduleRequest = new Message(Arrays.copyOfRange(failureMessage.getData(), 1, failureMessage.getLength())); // get the request from the data
                     newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request
                 } else { // First byte is elevator number that should be removed from active list
