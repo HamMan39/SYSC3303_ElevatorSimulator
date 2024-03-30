@@ -158,8 +158,6 @@ public class Elevator implements Runnable {
             // stop at current floor
             pendingStops.remove(first);
         }
-
-   //     floor= destFloor; //arrive at destFloor
     }
 
     /**
@@ -192,15 +190,16 @@ public class Elevator implements Runnable {
 
             injectTimeoutFailure(message); //check for timeout failure
 
-            currentState = state.DOOR_OPEN;
-            doorOpen(floor, currentState);
-
-            lampStatus(message.getDirection());
-
-            try {
-                Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
-            } catch (InterruptedException e) {
-            }
+//            currentState = state.DOOR_OPEN;
+//            doorOpen(floor, currentState);
+//
+//            lampStatus(message.getDirection());
+//
+//            try {
+//                Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
+//            } catch (InterruptedException e) {
+//            }
+            loadPassenger(floor);
 
             injectDoorFailure(message); //check for door stuck failure
 
@@ -213,7 +212,6 @@ public class Elevator implements Runnable {
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
 //            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
-
         }
     }
 
@@ -249,6 +247,20 @@ public class Elevator implements Runnable {
     public Integer getCurrentFloor(){
         return floor;
     }
+
+    public void loadPassenger(int floor) {
+        currentState = state.DOOR_OPEN;
+        doorOpen(floor, currentState);
+        Message.Directions direction = Message.Directions.IDLE;
+        lampStatus(direction);
+        try {
+            Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
+        } catch (InterruptedException e) {
+        }
+        currentState = state.DOOR_CLOSED;
+        doorClosed(floor, currentState);
+    }
+
     public void doorOpen(int floor, state currentState){
         System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
     }
