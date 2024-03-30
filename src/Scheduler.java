@@ -121,7 +121,6 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 elevatorPositions.set(j + 1, key);
             }
 
-            System.out.println(Arrays.toString(elevatorsStatus.toByteArray()));
 
             //First try to assign to the closest idle elevator, if there is any idle elevator
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
@@ -272,6 +271,17 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 try {
                     failureDumpSocket.receive(failureMessage);
                 } catch (IOException e){
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
+                //create packet to send to port on the Scheduler
+                DatagramPacket sendFailureAckPacket = new DatagramPacket(new byte[0], 0, failureMessage.getAddress(), failureMessage.getPort());
+
+                // Send the acknowledgement to the floor via the floorSocket.
+                try {
+                    floorSocket.send(sendFailureAckPacket);
+                } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
