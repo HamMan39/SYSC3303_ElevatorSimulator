@@ -275,6 +275,17 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                     System.exit(1);
                 }
 
+                //create packet to send to port on the Scheduler
+                DatagramPacket sendFailureAckPacket = new DatagramPacket(new byte[0], 0, failureMessage.getAddress(), failureMessage.getPort());
+
+                // Send the acknowledgement to the floor via the floorSocket.
+                try {
+                    floorSocket.send(sendFailureAckPacket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
                 if (failureMessage.getData()[0] == 0){ // Data is a request that needs to be rescheduled
                     Message rescheduleRequest = new Message(Arrays.copyOfRange(failureMessage.getData(), 1, failureMessage.getLength())); // get the request from the data
                     newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request

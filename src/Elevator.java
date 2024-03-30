@@ -1,7 +1,11 @@
+import javax.xml.crypto.Data;
+
 import static java.lang.Math.abs;
-import java.util.ArrayList;
-import java.util.SortedSet;
-import java.util.TreeSet;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.*;
+import java.util.*;
 
 /**
  * This Class represents the Elevator which travels between floors according to
@@ -11,7 +15,7 @@ import java.util.TreeSet;
  * @author Areej Mahmoud 101218260
  * @author Khola Haseeb 101192363
  */
-public class Elevator implements Runnable {
+public class Elevator extends CommunicationRPC implements Runnable {
 
     private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
 
@@ -220,7 +224,7 @@ public class Elevator implements Runnable {
     }
     private void injectTimeoutFailure(Message msg){
         if (msg.getFailure()== Message.Failures.TIMEOUT){
-            //call the handleTimeout() method to shut down the elevator
+            handleTimeout();
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
         }
     }
@@ -237,7 +241,20 @@ public class Elevator implements Runnable {
     }
 
     private void handleTimeout(){
-        //TODO re-work Elevator to store pending requests in a queue before this can work
+         sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
+
+        // send messages back to scheduler to be rescheduled
+        for (Message m: pendingMessages){
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            byteStream.write(0);
+            try {
+                byteStream.write(m.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            sendAndReceive(byteStream.toByteArray(), 66);
+        }
     }
 
     public Integer getCurrentFloor(){
