@@ -32,12 +32,20 @@ Iteration 3:
 4. Owen Petersen (101233850),  Implemented Scheduler algorithm and ElevatorData
 5. Nikita Sara Vijay (101195009), Implemented Elevator PendingFloors Algorithm and ElevatorSubsystem
 
-**Project Iteration 3**
+Iteration 4:
+1. Mahnoor Fatima (101192353), Updated FloorTest and MessageTest classes
+2. Khola Haseeb (101192363), Updated ElevatorTest class 
+3. Areej Mahmoud (101218260), Injecting failures into Elevator thread and updatedMessageBoxTest
+4. Owen Petersen (101233850),  Implemented re-scheduling failed elevator requests and updated ElevatorData
+5. Nikita Sara Vijay (101195009), Updated Elevator PendingFloors Algorithm for efficiency
+
+**Project Iteration 4**
 
 This Java project simulates an elevator system with 3 main subsystems - Elevator, Floor, and Scheduler. The Elevator moves between floors, the Floor subsystem reads input data from a file, and the Scheduler manages the communication between the Elevator and Floor.
 Elevator  Class. Iteration 3 implements Remote Procedure Calls over UDP to communicate between the main Thread. The Elevator Subsystem handles 4 separate elevators in a 22 floor building, receiving scheduled requests from 
 the Scheduler and Distributing them to the respective elevators. The input to the system is through the Floor class which reads, passenger Floor requests from an input file
-and sens them to the Scheduler Thread to schedule.
+and sends them to the Scheduler Thread to schedule. The system also simulates failures
+by injecting Door_Stuck or Timeout failures through the input file and transient and hard faults accordingly.
 
 ## Installation
 
@@ -78,6 +86,7 @@ sending remote procedure calls over UDP.
 - The `ElevatorSubsystem` thread continuously receives messages from the Scheduler and its 4 Elevators to update the real-time ElevatorData and 
 send it to the Scheduler thread
 - The four `Elevator` threads travel to the destination floors requested and sends responses once arrived to destination floor.
+The Elevator thread can also simulate failures when they are injected through the input files.
 - The `Scheduler` schedules request to the most convenient Elevator, using the real-time ElevatorData received from the ElevatorSubsystem.
 - The `FloorMonitor` thread monitors the Floor Subsystem to receive input requests into the system.
 
