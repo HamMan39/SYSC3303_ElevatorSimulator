@@ -15,7 +15,7 @@ class FloorTest {
         floor.importData("input.txt");
 
         // Assert that the buffer contains the test data
-        assertEquals(3, floor.getBuffer().size());
+        assertEquals(6, floor.getBuffer().size());
     }
 
     @Test
@@ -24,8 +24,8 @@ class FloorTest {
         Floor floor = new Floor();
 
         // Test input strings
-        String testData1 = "14:05:15.0 2 UP 4";
-        String testData2 = "16:09:23:0 6 DOWN 3";
+        String testData1 = "14:05:15.0 2 UP 4 0";
+        String testData2 = "16:09:23:0 6 DOWN 3 1";
 
         // Create Message objects
         Message message1 = floor.createMessage(testData1);
@@ -36,10 +36,12 @@ class FloorTest {
         assertEquals(2, message1.getArrivalFloor());
         assertEquals(Message.Directions.UP, message1.getDirection());
         assertEquals(4, message1.getDestinationFloor());
+        assertEquals(Message.Failures.NONE, message1.getFailure());
 
         assertEquals("16:09:23:0", message2.getArrivalTime());
         assertEquals(6, message2.getArrivalFloor());
         assertEquals(Message.Directions.DOWN, message2.getDirection());
         assertEquals(3, message2.getDestinationFloor());
+        assertEquals(Message.Failures.DOORS, message2.getFailure());
     }
 }
