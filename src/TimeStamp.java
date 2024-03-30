@@ -12,7 +12,7 @@ public class TimeStamp {
 
     public TimeStamp(){
         Timestamp ts = new Timestamp(System.currentTimeMillis());
-        this.timestamp = sdf.format(timestamp);
+        this.timestamp = sdf.format(ts);
     }
 
     /**
