@@ -63,10 +63,16 @@ public class Elevator implements Runnable {
 
         lampStatus(direction);
 
+        try {
+            long travelTime = (long)(7399.8);
+            Thread.sleep(travelTime); //simulate time taken to travel floors
+        } catch (InterruptedException e) {
+        }
+
         while(floor != destFloor) {
+            currentState = state.MOVING;
             try {
-                long travelTime = (long)(1429 *abs(floor-destFloor) +7399.8);
-                Thread.sleep(travelTime); //simulate time taken to travel floors
+                Thread.sleep(1429);         //simulate time taken to travel one floor
             } catch (InterruptedException e) {}
 
             if (floor < destFloor) {
@@ -102,6 +108,8 @@ public class Elevator implements Runnable {
 
                 // Request can be processed, so add a stop for it
                 pendingStops.add(message.getArrivalFloor());
+                System.out.println("---" + Thread.currentThread().getName() + " executing request from Scheduler : " + message);
+
                 // Check if this request will result in modifying the destination, and add a stop accordingly
                 if (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                         || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
@@ -148,7 +156,11 @@ public class Elevator implements Runnable {
             if(first == null || first != floor)
                 continue; // no stop at current floor
 
-            doorOpen(floor, currentState);
+            injectTimeoutFailure(message); //check for timeout failure
+
+            loadPassenger(floor);
+            injectDoorFailure(message); //check for door stuck failure
+
             // stop at current floor
             pendingStops.remove(first);
         }
@@ -184,17 +196,7 @@ public class Elevator implements Runnable {
 
             injectTimeoutFailure(message); //check for timeout failure
 
-//            currentState = state.DOOR_OPEN;
-//            doorOpen(floor, currentState);
-//
-//            lampStatus(message.getDirection());
-//
-//            try {
-//                Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
-//            } catch (InterruptedException e) {
-//            }
             loadPassenger(floor);
-
             injectDoorFailure(message); //check for door stuck failure
 
             travelFloors(message.getDestinationFloor()); //travel to destination floor
@@ -251,8 +253,7 @@ public class Elevator implements Runnable {
             Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
         } catch (InterruptedException e) {
         }
-        currentState = state.DOOR_CLOSED;
-        doorClosed(floor, currentState);
+
     }
 
     public void doorOpen(int floor, state currentState){
