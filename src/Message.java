@@ -18,7 +18,7 @@ public class Message {
     int destinationFloor;
     private Failures failure;
 
-    public enum Directions {IDLE, UP, DOWN, UPDOWN, DOWNUP}
+    public enum Directions {IDLE, UP, DOWN}
     public enum Failures {NONE, DOORS, TIMEOUT}
 
 
