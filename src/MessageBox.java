@@ -45,14 +45,6 @@ public class MessageBox {
     }
 
     /**
-     * Returns true if the box is empty, false if there are messages.
-     * @return true if the box is empty
-     */
-    public boolean empty(){
-        return messages.isEmpty();
-    }
-
-    /**
      * Returns the number of objects in the box
      * @return number of objects in the box.
      */
