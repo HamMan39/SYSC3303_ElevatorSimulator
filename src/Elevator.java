@@ -298,6 +298,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(floor);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
     }
+
+    public int getElevatorId() {
+        return elevatorId;
+    }
 }
 
 
