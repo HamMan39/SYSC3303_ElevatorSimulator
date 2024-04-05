@@ -1,10 +1,5 @@
-import javax.xml.crypto.Data;
-
-import static java.lang.Math.abs;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -18,7 +13,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
-    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
+    public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
 
     private state currentState;
 
@@ -33,7 +28,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorData elevatorData;
 
     private ElevatorStatus elevatorStatus;
-
+    
     /**
      * Constructor for class Elevator
      *
@@ -236,6 +231,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
     private void injectTimeoutFailure(Message msg) throws TimeoutException {
         if (msg.getFailure()== Message.Failures.TIMEOUT){
+            currentState = state.DISABLED;
             handleTimeout();
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             throw new TimeoutException();
@@ -301,6 +297,14 @@ public class Elevator extends CommunicationRPC implements Runnable {
     public synchronized void modifyElevatorData(Message.Directions direction) {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(floor);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
+    }
+
+    public synchronized void updateElevatorLoad(int elevatorLoad){
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentLoad(elevatorLoad);
+    }
+
+    public int getElevatorId() {
+        return elevatorId;
     }
 }
 
