@@ -28,7 +28,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorData elevatorData;
 
     private ElevatorStatus elevatorStatus;
-
+    
     /**
      * Constructor for class Elevator
      *
@@ -297,6 +297,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
     public synchronized void modifyElevatorData(Message.Directions direction) {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(floor);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
+    }
+
+    public synchronized void updateElevatorLoad(int elevatorLoad){
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentLoad(elevatorLoad);
     }
 
     public int getElevatorId() {
