@@ -8,7 +8,7 @@ import java.awt.*;
  * @author Areej Mahmoud 101218260
  */
 
-public class ElevatorView extends JFrame{
+public class ElevatorView extends JFrame implements ElevatorViewHandler{
     private JButton buttons[][]; // buttons representing grid squares.
     private JPanel board; //panel to hold buttons representing the elevators/floors
     private static final int ELEVATORS=4; // number of elevators
@@ -38,9 +38,27 @@ public class ElevatorView extends JFrame{
         this.setVisible(true);
     }
 
+    @Override
+    public void handleStateChange(ElevatorEvent e) {
+
+    }
+
+    @Override
+    public void handleTravelFloor(ElevatorEvent e) {
+
+    }
+
+    @Override
+    public void handleTimeoutFailure(ElevatorEvent e) {
+
+    }
+
+    @Override
+    public void handleDoorFailure(ElevatorEvent e) {
+
+    }
     public static void main(String[] args) {
         new ElevatorView();
     }
-
 
 }
