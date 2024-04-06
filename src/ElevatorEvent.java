@@ -40,6 +40,16 @@ public class ElevatorEvent extends EventObject {
         this.currState = state;
     }
 
+    /**
+     * Elevator change of state event
+     * @param source
+     * @param state
+     */
+    public ElevatorEvent(Elevator source, Elevator.state state){
+        super(source);
+        this.currState = state;
+    }
+
     public Message.Directions getDirection() {
         return direction;
     }

@@ -28,6 +28,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorData elevatorData;
 
     private ElevatorStatus elevatorStatus;
+
+    List<ElevatorViewHandler> views;
     
     /**
      * Constructor for class Elevator
@@ -35,7 +37,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * @param box1 Incoming messages MessageBox
      * @param box2 Outgoing messages MessageBox
      */
-    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2, ElevatorData elevatorData) {
+    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2, ElevatorData elevatorData, ElevatorViewHandler view) {
         this.floor = 0;
         this.incomingMessages = box1;
         this.outgoingMessages = box2;
@@ -45,7 +47,15 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.elevatorData = elevatorData;
         this.elevatorStatus = new ElevatorStatus();
         this.pendingMessages = new ArrayList<>();
+        this.views = new ArrayList<>();
+
+        addElevatorView(view);
     }
+
+    public void addElevatorView (ElevatorViewHandler view){
+        views.add(view);
+    }
+
     /**
      * Simulate Elevator travelling from current floor to destFloor
      * @param destFloor the destination floor.
@@ -74,6 +84,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
             try {
                 Thread.sleep(1429);         //simulate time taken to travel one floor
             } catch (InterruptedException e) {}
+
+            for (ElevatorViewHandler view : views){
+                view.handleTravelFloor(new ElevatorEvent(this, direction, currentState));
+            }
 
             if (floor < destFloor) {
                 floor++;
@@ -213,7 +227,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 break; // if a timeout failure occurs, stop the elevator
             }
 
-            currentState = state.IDLE;
+            loadPassenger(floor);
+            injectDoorFailure(message); //check for door stuck failure
             arrivalStatus(floor, currentState);
 
             Message.Directions direction = Message.Directions.IDLE;
@@ -284,14 +299,24 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void doorOpen(int floor, state currentState){
         System.out.println(">>"+ new TimeStamp().getTimestamp() + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        for (ElevatorViewHandler view : views){
+            view.handleStateChange(new ElevatorEvent(this, currentState));
+        }
     }
 
     public void doorClosed(int floor, state currentState){
         System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        for (ElevatorViewHandler view : views){
+            view.handleStateChange(new ElevatorEvent(this, currentState));
+        }
     }
 
     public void arrivalStatus(int floor, state currentState){
+        currentState = state.IDLE;
         System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+        for (ElevatorViewHandler view : views){
+            view.handleStateChange(new ElevatorEvent(this, currentState));
+        }
     }
 
     public synchronized void modifyElevatorData(Message.Directions direction) {
