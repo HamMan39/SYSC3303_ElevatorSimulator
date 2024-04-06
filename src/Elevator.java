@@ -63,9 +63,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * Simulate Elevator travelling from current floor to destFloor
      * @param destFloor the destination floor.
      */
-    public void travelFloors(int destFloor) throws TimeoutException {
+    public void travelFloors(int destFloor, boolean isArrival) throws TimeoutException {
         currentState = state.MOVING;
-        SortedSet<Integer> pendingStops = new TreeSet<>();
+        //SortedSet<Integer> pendingStops = new TreeSet<>();
         System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
         Message.Directions direction;
         if((floor-destFloor)>0){
@@ -107,6 +107,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
             n = pendingMessages.size();
             
             for (int i = 0; i < n; i++) {
+                if(! criticalFailFloors.isEmpty())
+                    break; // no more requests will be taken from pending since it is destined for failure
                 message = pendingMessages.remove(0);
 
                 // Checks whether this service can be processed:
@@ -119,8 +121,16 @@ public class Elevator extends CommunicationRPC implements Runnable {
                     continue;
                 }
 
+                // if elevator is moving to arrival point, then the final destination CANNOT be changed en route
+                if(isArrival &&
+                        (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+                                || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor)) {
+                    continue;
+                }
+
                 // Request can be processed, so add a stop for it
-                pendingStops.add(message.getArrivalFloor());
+                //pendingStops.add(message.getArrivalFloor());
+
                 pendingArrs.add(message.getArrivalFloor());
                 if (message.getFailure()== Message.Failures.TIMEOUT){
                     criticalFailFloors.add(message.getArrivalFloor());
@@ -145,6 +155,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
             // Repeat the above logic for new requests
             for(int i=0; i<n; i++) {
+                if(! criticalFailFloors.isEmpty())
+                    break; // no more requests will be taken from pending since it is destined for failure
+
                 message = incomingMessages.get();
                 if(message.getDirection() != direction
                         || (direction == Message.Directions.UP
@@ -154,7 +167,20 @@ public class Elevator extends CommunicationRPC implements Runnable {
                     pendingMessages.add(message);
                     continue;
                 }
+
+                // if elevator is moving to arrival point, then the final destination CANNOT be changed en route
+                if(isArrival &&
+                        (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+                                || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor)) {
+                    continue;
+                }
+
                 pendingArrs.add(message.getArrivalFloor());
+                if (message.getFailure()== Message.Failures.TIMEOUT){
+                    criticalFailFloors.add(message.getArrivalFloor());
+                } else if(message.getFailure() == Message.Failures.DOORS) {
+                    doorFailFloors.add(message.getArrivalFloor());
+                }
                 if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                         || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
                     pendingDests.add(destFloor);
@@ -163,7 +189,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                     pendingDests.add(message.getDestinationFloor());
                 }
             }
-            Integer first = null;
+            //Integer first = null;
             Integer arr1 = null, dest1 = null;
             // The pending stops is in sorted order
             // If it is going up, processing will be done in ascending order, for going down, it will be descending
@@ -187,15 +213,29 @@ public class Elevator extends CommunicationRPC implements Runnable {
             if((arr1 == null && dest1 == null) || (arr1 != floor && dest1 != floor))
                 continue; // no stop at current floor
 
-            // -------------------------------------
-
-            injectTimeoutFailure(message); //check for timeout failure
-
-            loadPassenger(floor);
-            injectDoorFailure(message); //check for door stuck failure
-
-            // stop at current floor
-            pendingStops.remove(first);
+            if(arr1 != null &&  arr1 == floor) {
+                if(criticalFailFloors.contains(arr1)) {
+                    injectTimeoutFailure(); //check for timeout failure
+                }
+                loadPassenger(floor);
+                pendingArrs.remove(arr1);
+            }
+            if(dest1 != null && dest1 == floor) {
+                pendingDests.remove(dest1);
+            }
+            if(doorFailFloors.contains(floor)) {
+                injectDoorFailure(); //check for door stuck failure
+                doorFailFloors.remove(floor);
+            }
+//
+//
+//            injectTimeoutFailure(message); //check for timeout failure
+//
+//            loadPassenger(floor);
+//            injectDoorFailure(message); //check for door stuck failure
+//
+//            // stop at current floor
+//            pendingStops.remove(first);
         }
     }
 
@@ -223,25 +263,35 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
             System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
+            // If a critical (timeout) failure occurs
+            if (message.getFailure()== Message.Failures.TIMEOUT){
+                System.out.println("******************" + message);
+                criticalFailFloors.add(message.getArrivalFloor());
+            }
+
             if (message.getArrivalFloor() != this.floor) {
                 try {
-                    travelFloors(message.getArrivalFloor());
+                    travelFloors(message.getArrivalFloor(), true);
                 } catch (TimeoutException e) {
                     break; // if a timeout failure occurs, stop the elevator
                 }
             }
 
-            try {
-                injectTimeoutFailure(message); //check for timeout failure
-            } catch (TimeoutException e) {
-                break; // if a timeout failure occurs, stop the elevator
+            if (message.getFailure()== Message.Failures.TIMEOUT){
+                try {
+                    injectTimeoutFailure(); //check for timeout failure
+                } catch (TimeoutException e) {
+                    break; // if a timeout failure occurs, stop the elevator
+                }
             }
 
-            loadPassenger(floor);
-            injectDoorFailure(message); //check for door stuck failure
+           // loadPassenger(floor);
+            if (message.getFailure()== Message.Failures.DOORS){
+                injectDoorFailure(); //check for door stuck failure
+            }
 
             try {
-                travelFloors(message.getDestinationFloor()); //travel to destination floor
+                travelFloors(message.getDestinationFloor(), false); //travel to destination floor
             } catch (TimeoutException e) {
                 break; // if a timeout failure occurs, stop the elevator
             }
@@ -262,21 +312,19 @@ public class Elevator extends CommunicationRPC implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
-    private void injectTimeoutFailure(Message msg) throws TimeoutException {
-        if (msg.getFailure()== Message.Failures.TIMEOUT){
+    private void injectTimeoutFailure() throws TimeoutException {
             handleTimeout();
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             throw new TimeoutException();
-        }
+
     }
-    private void injectDoorFailure(Message msg){
-        if (msg.getFailure() == Message.Failures.DOORS){
+    private void injectDoorFailure(){
             System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
             }
-        }
+
         currentState = state.DOOR_CLOSED;
         doorClosed(floor, currentState);
     }
