@@ -34,11 +34,6 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     private ElevatorStatus elevatorStatus;
 
-    private SortedSet<Integer> pendingArrs;
-    private SortedSet<Integer> pendingDests;
-    private SortedSet<Integer> doorFailFloors;
-    private SortedSet<Integer> criticalFailFloors;
-
     /**
      * Constructor for class Elevator
      *
@@ -55,10 +50,6 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.elevatorData = elevatorData;
         this.elevatorStatus = new ElevatorStatus();
         this.pendingMessages = new ArrayList<>();
-        this.pendingArrs = new TreeSet<>();
-        this.pendingDests = new TreeSet<>();
-        this.doorFailFloors = new TreeSet<>();
-        this.criticalFailFloors = new TreeSet<>();
     }
     /**
      * Simulate Elevator travelling from current floor to destFloor
@@ -106,7 +97,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             int n;
 
             n = pendingMessages.size();
-
+            
             for (int i = 0; i < n; i++) {
                 message = pendingMessages.remove(0);
 
@@ -121,22 +112,17 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 }
 
                 // Request can be processed, so add a stop for it
-                pendingArrs.add(message.getArrivalFloor());
-                if (message.getFailure()== Message.Failures.TIMEOUT){
-                    criticalFailFloors.add(message.getArrivalFloor());
-                } else if(message.getFailure() == Message.Failures.DOORS) {
-                    doorFailFloors.add(message.getArrivalFloor());
-                }
+                pendingStops.add(message.getArrivalFloor());
                 System.out.println("---" + Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
                 // Check if this request will result in modifying the destination, and add a stop accordingly
                 if (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                         || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
                     // Destination has changed, so the old destination should be added as a stop
-                    pendingDests.add(destFloor);
+                    pendingStops.add(destFloor);
                     destFloor = message.getDestinationFloor();
                 } else {
-                    pendingDests.add(message.getDestinationFloor());
+                    pendingStops.add(message.getDestinationFloor());
                 }
             }
 
@@ -154,39 +140,26 @@ public class Elevator extends CommunicationRPC implements Runnable {
                     pendingMessages.add(message);
                     continue;
                 }
-                pendingArrs.add(message.getArrivalFloor());
+                pendingStops.add(message.getArrivalFloor());
                 if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                         || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
-                    pendingDests.add(destFloor);
+                    pendingStops.add(destFloor);
                     destFloor = message.getDestinationFloor();
                 } else {
-                    pendingDests.add(message.getDestinationFloor());
+                    pendingStops.add(message.getDestinationFloor());
                 }
             }
             Integer first = null;
-            Integer arr1 = null, dest1 = null;
             // The pending stops is in sorted order
             // If it is going up, processing will be done in ascending order, for going down, it will be descending
-            if(!pendingArrs.isEmpty()) {
-                if (direction == Message.Directions.UP) {
-                    arr1 = pendingArrs.first();
-                }else{
-                    arr1 = pendingArrs.last();       //When travelling down, checks for the largest # and services that floor
-                }
+            if(!pendingStops.isEmpty()) {
+                 if (direction == Message.Directions.UP)
+                     first = pendingStops.first();
+                 else
+                     first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
             }
-
-            if(!pendingDests.isEmpty()) {
-                if (direction == Message.Directions.UP) {
-                    dest1 = pendingDests.first();
-                } else {
-                    dest1 = pendingDests.last();
-                }
-            }
-
-            if((arr1 == null && dest1 == null) || (arr1 != floor && dest1 != floor))
+            if(first == null || first != floor)
                 continue; // no stop at current floor
-
-            // -------------------------------------
 
             injectTimeoutFailure(message); //check for timeout failure
 
@@ -281,7 +254,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     private void handleTimeout(){
-        sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
+         sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
 
         // send messages back to scheduler to be rescheduled
         for (Message m: pendingMessages){
@@ -330,3 +303,5 @@ public class Elevator extends CommunicationRPC implements Runnable {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
     }
 }
+
+
