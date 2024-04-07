@@ -10,75 +10,40 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ElevatorTest {
 
     @Test
-    public void testRun(){
-
-        ElevatorView view = new ElevatorView();
+    public void testGiveRequest(){
 
         //create MessageBox instances for testing
         MessageBox incomingMessages = new MessageBox();
         MessageBox outgoingMessages = new MessageBox();
-        ElevatorData elevatorData;
 
-        elevatorData = new ElevatorData();
-
-        // Create Elevator instance
-        Elevator elevator = new Elevator(0,20,elevatorData, view);
-
-        // create thread for elevator and start it
-        Thread elevatorThread = new Thread(elevator);
-        elevatorThread.start();
-
-        Message message = new Message("14:05:15.0",2, Message.Directions.UP, 4, Message.Failures.NONE);
-
-        // Add message to incomingMessages
-        incomingMessages.put(message);
-
-        // Check if outgoingMessages contains the test message
-        assertEquals(message, outgoingMessages.get());
-
-        //Testing Elevator run if Door fault present
-        Message message2 = new Message("15:06:15.0",2, Message.Directions.UP, 4, Message.Failures.DOORS);
-
-        // Add message to incomingMessages
-        incomingMessages.put(message2);
-
-        // Check if outgoingMessages contains the test message
-        assertEquals(message2, outgoingMessages.get());
-    }
-
-    @Test
-    public void testTravelFloors(){
-        ElevatorView view = new ElevatorView();
-
-        //create MessageBox instances for testing
-        MessageBox incomingMessages = new MessageBox();
-        MessageBox outgoingMessages = new MessageBox();
-        ElevatorData elevatorData;
-
-        elevatorData = new ElevatorData();
-
-        // Create Elevator instance
-        Elevator elevator = new Elevator(0,20, elevatorData, view);
-
-        // create thread for elevator and start it
-        Thread elevatorThread = new Thread(elevator);
+        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(4,21,incomingMessages,outgoingMessages);
 
         // -- Testing with no failures
-        Message message = new Message("14:05:15.0",2, Message.Directions.UP, 4, Message.Failures.NONE);
+        Message message = new Message("14:05:15.0",1,Message.Directions.UP, 3,Message.Failures.NONE);
+        // -- Testing with Door Failure
+        Message message2 = new Message("14:05:15.0",1,Message.Directions.UP, 3,Message.Failures.DOORS);
 
-        // Add message to incomingMessages
-        incomingMessages.put(message);
-
-        //Initial Floor should be 0 and not the destination floor
-        assertEquals(0, elevator.getCurrentFloor());
-        assertNotEquals(message.getDestinationFloor(), elevator.getCurrentFloor());
-
-        //Travel to the destination floor
-
-        elevator.travelFloor(1); // TODO this is broken
+        Message message3 = new Message("14:05:15.0",1,Message.Directions.UP, 3,Message.Failures.TIMEOUT);
 
 
-        // Check if the destination floor matches
-        assertEquals(message.getArrivalFloor(), 2);
+        elevatorSubsystem.getElevator(0).giveRequest(message);
+        elevatorSubsystem.getElevator(1).giveRequest(message);
+
+        try {
+            // Sleep for 50 seconds (50000 milliseconds)
+            Thread.sleep(50000);
+        } catch (InterruptedException e) {
+            // Handle interrupted exception
+            e.printStackTrace();
+        }
+
+        //Test if current floor and state are accurate
+        assertEquals( message.getDestinationFloor(), elevatorSubsystem.getElevator(0).getCurrentFloor());
+        assertEquals(Elevator.state.DOOR_OPEN,  elevatorSubsystem.getElevator(0).getCurrentState());
+
+        assertEquals( message2.getDestinationFloor(), elevatorSubsystem.getElevator(1).getCurrentFloor());
+        assertEquals(Elevator.state.DOOR_OPEN,  elevatorSubsystem.getElevator(1).getCurrentState());
     }
 }
+
+
