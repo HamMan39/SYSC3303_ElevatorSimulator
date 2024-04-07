@@ -13,6 +13,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
+    public static final int MAX_CAPACITY = 5;
     public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DOOR_STUCK, DISABLED}
 
     private state currentState;
