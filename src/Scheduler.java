@@ -124,8 +124,10 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             //First try to assign to the closest idle elevator, if there is any idle elevator
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
                 if (elevatorsStatus.isIdle(elevator[0])){ // check if each elevator is idle
-                    sendCommand(request, elevator[0]);
-                    return true;
+                    if (elevatorsStatus.getElevatorLoad(elevator[0]) < Elevator.MAX_CAPACITY) {
+                        sendCommand(request, elevator[0]);
+                        return true;
+                    }
                 }
             }
 
