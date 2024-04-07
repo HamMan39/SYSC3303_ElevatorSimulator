@@ -47,7 +47,7 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
                 board.add(buttons[i][j]);
             }
             /*Add labels with floor numbers to each row representing a floor*/
-            floorLabels[i][0] = new JLabel(" Floor "+i+" >> ");
+            floorLabels[i][0] = new JLabel(" Floor "+ (MAX_INDEX -i)+" >> ");
             labelPanel.add(floorLabels[i][0]);
         }
         /* Place the board at the center, and labels to the left. */
@@ -59,18 +59,31 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         this.setVisible(true);
     }
 
+    /**
+     * Handles state change events for elevators.
+     *
+     * @param e The elevator event triggering the state change.
+     */
     @Override
     public void handleStateChange(ElevatorEvent e) {
         Elevator elevator = (Elevator) e.getSource();
 
+        //Set text and update colours
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
+        button.setBackground(Color.green);
         button.setText(e.getCurrState().toString());
     }
 
+    /**
+     * Handles travel floor events for elevators.
+     *
+     * @param e The elevator event triggering the travel floor change.
+     */
     @Override
     public void handleTravelFloor(ElevatorEvent e) {
         Elevator elevator = (Elevator) e.getSource();
 
+        //Update the elevator moving showing green block and set text
         if (e.getDirection() == Message.Directions.UP){
             JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()-1][elevator.getElevatorId()];
             button.setBackground(Color.green);
@@ -82,20 +95,48 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
             button.setText(e.getCurrState().toString());
         }
 
+        //Update the floor boxes to reset to light gray blocks and set text
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
         button.setBackground(Color.lightGray);
         button.setText("");
     }
 
+    /**
+     * Handles timeout failure events for elevators.
+     *
+     * @param e The elevator event triggering the timeout failure.
+     */
     @Override
     public void handleTimeoutFailure(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
 
+        //Update the blocks to be red and set the text to disabled
+        button.setBackground(Color.RED);
+        button.setText(e.getCurrState().toString());
     }
 
+    /**
+     * Handles door failure events for elevators.
+     *
+     * @param e The elevator event triggering the door failure.
+     */
     @Override
     public void handleDoorFailure(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
 
+        //Update the blocks to be red and set the text to door stuck/door closed accordingly
+        if (e.getCurrState() == Elevator.state.DOOR_STUCK){
+            button.setBackground(Color.RED);
+            button.setText(e.getCurrState().toString());
+        }
+        else{
+            button.setBackground(Color.GREEN);
+            button.setText(e.getCurrState().toString());
+        }
     }
+
     public static void main(String[] args) {
         new ElevatorView();
     }
