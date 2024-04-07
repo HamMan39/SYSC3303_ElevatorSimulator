@@ -27,7 +27,7 @@ public class ElevatorTest {
 
 
         elevatorSubsystem.getElevator(0).giveRequest(message);
-        elevatorSubsystem.getElevator(1).giveRequest(message);
+        elevatorSubsystem.getElevator(1).giveRequest(message2);
 
         try {
             // Sleep for 50 seconds (50000 milliseconds)
