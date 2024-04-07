@@ -29,6 +29,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorStatus elevatorStatus;
     private ArrayList<RequestedStop> requestedStops;
     private Message.Directions elevatorDirection; // direction elevator is moving, only used internally and not tied to the state of the elevator (although they should be similar)
+    private int currentLoad;
 
     List<ElevatorViewHandler> views;
 
@@ -50,6 +51,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.views = new ArrayList<>();
         this.requestedStops = new ArrayList<>();
         this. elevatorDirection = Message.Directions.IDLE;
+        this.currentLoad = 0;
 
         addElevatorView(view);
     }
@@ -197,6 +199,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
         requestedStops.add(new RequestedStop(request.getArrivalFloor(), false)); // add the arrival floor of the request
         requestedStops.add(new RequestedStop(request.getDestinationFloor(), true)); // add the destination of the request
 
+        currentLoad++; // increase the number of requests (the "load") by one
+
         //Insertion sort algorithm (organize requests from closest to furthest from elevator)
         int n = requestedStops.size();
         for (int i = 1; i < n; ++i) {
@@ -228,6 +232,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
      */
     @Override
     public void run() {
+
+        while (true) {
+
+        }
 
 //        while (true) {
 //            Message message = null;
