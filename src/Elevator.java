@@ -83,7 +83,12 @@ public class Elevator extends CommunicationRPC implements Runnable {
             currentFloor++;
         } else if (elevatorDirection == Message.Directions.DOWN) {
             currentState = state.MOVING;
-
+            for (ElevatorViewHandler view : views){
+                view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
+            }
+            for (ElevatorViewHandler view : views){
+                view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
@@ -238,6 +243,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
         currentLoad++; // increase the number of requests (the "load") by one
 
+        System.out.println("---" + Thread.currentThread().getName() + " gave request (" + request + ") to Elevator " + elevatorId + ". Current load: " + currentLoad);
+
         updateElevatorData(); //multiple updates ensure scheduler has the most accurate information
 
         //Insertion sort algorithm (organize requests from closest to furthest from elevator)
@@ -318,6 +325,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
                         }
                         if (rs.getIsDestination()) { // if a passenger is getting off then decrease load
                             currentLoad--;
+                            System.out.println("---" + Thread.currentThread().getName() + " passenger departed. Current load: " + currentLoad);
+                        } else {
+                            System.out.println("---" + Thread.currentThread().getName() + " passenger picked up.");
                         }
                         it.remove(); // remove the stop from the list
 
@@ -327,6 +337,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
                 closeDoors();
             } else { // need to move elevator one floor then check again
+                System.out.println(Thread.currentThread().getName() + " - MOVING from floor " + currentFloor + " to floor " + nextStop.getFloor());
                 travelFloor();
                 updateElevatorData();
             }
