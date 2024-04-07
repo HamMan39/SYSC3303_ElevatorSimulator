@@ -218,7 +218,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * Distributes a request from the ElevatorSubsystem to a specific elevator
      * @param request
      */
-    public void giveRequest(Message request) {
+    public synchronized void giveRequest(Message request) {
         // If elevator is not moving, save what the new direction is so the stops can be sorted
         if (elevatorDirection == Message.Directions.IDLE){
             elevatorDirection = request.getDirection();
@@ -272,20 +272,22 @@ public class Elevator extends CommunicationRPC implements Runnable {
     public void run() {
 
         while (true) {
-            while (currentLoad == 0) {
+            synchronized (this) {
+                while (currentLoad == 0) {
 
-                currentState = state.IDLE;
-                for (ElevatorViewHandler view : views){
-                    view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
-                }
-                elevatorDirection = Message.Directions.IDLE;
-                updateElevatorData();
+                    currentState = state.IDLE;
+                    for (ElevatorViewHandler view : views) {
+                        view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
+                    }
+                    elevatorDirection = Message.Directions.IDLE;
+                    updateElevatorData();
 
-                try {
-                    wait(); // wait until we have requests to deal with
-                } catch (InterruptedException e) {
-                  e.printStackTrace();
-                  System.exit(1);
+                    try {
+                        wait(); // wait until we have requests to deal with
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
             }
 
