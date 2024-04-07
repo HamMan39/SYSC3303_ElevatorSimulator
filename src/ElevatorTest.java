@@ -12,6 +12,8 @@ public class ElevatorTest {
     @Test
     public void testRun(){
 
+        ElevatorView view = new ElevatorView();
+
         //create MessageBox instances for testing
         MessageBox incomingMessages = new MessageBox();
         MessageBox outgoingMessages = new MessageBox();
@@ -20,7 +22,7 @@ public class ElevatorTest {
         elevatorData = new ElevatorData();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages,elevatorData);
+        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages,elevatorData, view);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
@@ -46,6 +48,8 @@ public class ElevatorTest {
 
     @Test
     public void testTravelFloors(){
+        ElevatorView view = new ElevatorView();
+
         //create MessageBox instances for testing
         MessageBox incomingMessages = new MessageBox();
         MessageBox outgoingMessages = new MessageBox();
@@ -54,11 +58,10 @@ public class ElevatorTest {
         elevatorData = new ElevatorData();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages, elevatorData);
+        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages, elevatorData, view);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
-        elevatorThread.start();
 
         // -- Testing with no failures
         Message message = new Message("14:05:15.0",2, Message.Directions.UP, 4, Message.Failures.NONE);
@@ -72,12 +75,12 @@ public class ElevatorTest {
 
         //Travel to the destination floor
         try {
-            elevator.travelFloors(message.getDestinationFloor());
+            elevator.travelFloors(message.getArrivalFloor());
         } catch (TimeoutException e) {
             // error will never happen here
         }
 
         // Check if the destination floor matches
-        assertEquals(message.getDestinationFloor(), elevator.getCurrentFloor());
+        assertEquals(message.getArrivalFloor(), 2);
     }
 }

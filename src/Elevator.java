@@ -1,10 +1,5 @@
-import javax.xml.crypto.Data;
-
-import static java.lang.Math.abs;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -18,7 +13,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
-    private enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
+    public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DOOR_STUCK, DISABLED}
 
     private state currentState;
 
@@ -34,13 +29,17 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     private ElevatorStatus elevatorStatus;
 
+    List<ElevatorViewHandler> views;
+
+    private int doorStuck = 1;
+    
     /**
      * Constructor for class Elevator
      *
      * @param box1 Incoming messages MessageBox
      * @param box2 Outgoing messages MessageBox
      */
-    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2, ElevatorData elevatorData) {
+    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2, ElevatorData elevatorData, ElevatorViewHandler view) {
         this.floor = 0;
         this.incomingMessages = box1;
         this.outgoingMessages = box2;
@@ -50,7 +49,15 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.elevatorData = elevatorData;
         this.elevatorStatus = new ElevatorStatus();
         this.pendingMessages = new ArrayList<>();
+        this.views = new ArrayList<>();
+
+        addElevatorView(view);
     }
+
+    public void addElevatorView (ElevatorViewHandler view){
+        views.add(view);
+    }
+
     /**
      * Simulate Elevator travelling from current floor to destFloor
      * @param destFloor the destination floor.
@@ -79,6 +86,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
             try {
                 Thread.sleep(1429);         //simulate time taken to travel one floor
             } catch (InterruptedException e) {}
+
+            for (ElevatorViewHandler view : views){
+                view.handleTravelFloor(new ElevatorEvent(this, direction, currentState));
+            }
 
             if (floor < destFloor) {
                 floor++;
@@ -218,13 +229,13 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 break; // if a timeout failure occurs, stop the elevator
             }
 
-            currentState = state.IDLE;
+            loadPassenger(floor);
+            injectDoorFailure(message); //check for door stuck failure
             arrivalStatus(floor, currentState);
 
             Message.Directions direction = Message.Directions.IDLE;
             lampStatus(direction);
             outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
-//            System.out.println(Thread.currentThread().getName() + " sent message to Scheduler : " + message);
         }
     }
 
@@ -237,18 +248,27 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
     private void injectTimeoutFailure(Message msg) throws TimeoutException {
         if (msg.getFailure()== Message.Failures.TIMEOUT){
+            currentState = state.DISABLED;
             handleTimeout();
+            for (ElevatorViewHandler view: views){
+                view.handleTimeoutFailure(new ElevatorEvent(this, currentState));
+            }
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             throw new TimeoutException();
         }
     }
     private void injectDoorFailure(Message msg){
-        if (msg.getFailure() == Message.Failures.DOORS){
-            System.out.println(Thread.currentThread().getName() + "DOOR STUCK. Attempting to close ...");
+        if (msg.getFailure() == Message.Failures.DOORS && doorStuck == 1){
+            currentState = state.DOOR_STUCK;
+            for (ElevatorViewHandler view : views){
+                view.handleDoorFailure(new ElevatorEvent(this, currentState));
+            }
+            System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
             }
+            doorStuck = (doorStuck + 1) % 2;
         }
         currentState = state.DOOR_CLOSED;
         doorClosed(floor, currentState);
@@ -260,7 +280,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         // send messages back to scheduler to be rescheduled
         for (Message m: pendingMessages){
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            byteStream.write(0);
+            byteStream.write(-1);
             try {
                 byteStream.write(m.toByteArray());
             } catch (IOException e) {
@@ -288,20 +308,38 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     public void doorOpen(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>"+ new TimeStamp().getTimestamp() +" "+ Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        for (ElevatorViewHandler view : views){
+            view.handleStateChange(new ElevatorEvent(this, currentState));
+        }
     }
 
     public void doorClosed(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        for (ElevatorViewHandler view : views){
+            view.handleStateChange(new ElevatorEvent(this, currentState));
+        }
     }
 
     public void arrivalStatus(int floor, state currentState){
-        System.out.println(">>" + Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+        currentState = state.IDLE;
+        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+        for (ElevatorViewHandler view : views){
+            view.handleStateChange(new ElevatorEvent(this, currentState));
+        }
     }
 
     public synchronized void modifyElevatorData(Message.Directions direction) {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(floor);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
+    }
+
+    public synchronized void updateElevatorLoad(int elevatorLoad){
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentLoad(elevatorLoad);
+    }
+
+    public int getElevatorId() {
+        return elevatorId;
     }
 }
 

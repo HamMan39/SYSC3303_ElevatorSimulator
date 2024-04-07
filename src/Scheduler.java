@@ -286,8 +286,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                     e.printStackTrace();
                     System.exit(1);
                 }
+                if (failureMessage.getData()[0] == -1){ // Data is a request that needs to be rescheduled
 
-                if (failureMessage.getData()[0] == 0){ // Data is a request that needs to be rescheduled
                     Message rescheduleRequest = new Message(Arrays.copyOfRange(failureMessage.getData(), 1, failureMessage.getLength())); // get the request from the data
                     newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request
                 } else { // First byte is elevator number that should be removed from active list

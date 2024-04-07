@@ -1,5 +1,5 @@
 
-# Iteration 3 - SYSC3303 A4 - Elevator Real-time System Simulator
+# Iteration 4 - SYSC3303 A4 - Elevator Real-time System Simulator
 ## Overview
 **Group Number:** 6
 
@@ -33,19 +33,21 @@ Iteration 3:
 5. Nikita Sara Vijay (101195009), Implemented Elevator PendingFloors Algorithm and ElevatorSubsystem
 
 Iteration 4:
-1. Mahnoor Fatima (101192353), Updated FloorTest and MessageTest classes
+1. Mahnoor Fatima (101192353), Updated FloorTest and MessageTest, Drew Timing Diagrams
 2. Khola Haseeb (101192363), Updated ElevatorTest class 
-3. Areej Mahmoud (101218260), Injecting failures into Elevator thread and updatedMessageBoxTest
+3. Areej Mahmoud (101218260), Implemented injecting failures into Elevator, updatedMessageBoxTest and Timestamps
 4. Owen Petersen (101233850),  Implemented re-scheduling failed elevator requests and updated ElevatorData
 5. Nikita Sara Vijay (101195009), Updated Elevator PendingFloors Algorithm for efficiency
 
-**Project Iteration 4**
+**Project Iteration 5**
 
 This Java project simulates an elevator system with 3 main subsystems - Elevator, Floor, and Scheduler. The Elevator moves between floors, the Floor subsystem reads input data from a file, and the Scheduler manages the communication between the Elevator and Floor.
-Elevator  Class. Iteration 3 implements Remote Procedure Calls over UDP to communicate between the main Thread. The Elevator Subsystem handles 4 separate elevators in a 22 floor building, receiving scheduled requests from 
+Elevator  Class. Iteration 3 implemented Remote Procedure Calls over UDP to communicate between the main Thread. The Elevator Subsystem handles 4 separate elevators in a 22 floor building, receiving scheduled requests from 
 the Scheduler and Distributing them to the respective elevators. The input to the system is through the Floor class which reads, passenger Floor requests from an input file
-and sends them to the Scheduler Thread to schedule. The system also simulates failures
+and sends them to the Scheduler Thread to schedule. In Iteration 4, the system now simulates failures
 by injecting Door_Stuck or Timeout failures through the input file and transient and hard faults accordingly.
+This project implements a Graphical user interface using the Java swing.x library and the 
+Java Event Model and the Observer Pattern to display the elevator subsystem in action.
 
 ## Installation
 
@@ -80,6 +82,13 @@ The project is organized into the following main classes:
 which implement rpc_send(), sendAndReceive(), and receiveAndSend() methods to facilitate
 sending remote procedure calls over UDP.
 
+`ElevatorView`: Implements the ElevatorViewHandler interface and represents the 
+graphical user interface which displays all elevators using a grid and buttons that 
+change color to depict moving/faulty elevators.
+
+`ElevatorViewHandler`: An interface that declares methods to handle different elevator Events.
+
+`ElevatorEvent`: An Elevator thread event that cause a change of state or warrants updating the ElevatorView GUI.
 
 ## Thread Interaction
 - The `Floor` thread reads input data from a file and sends messages to the Scheduler.

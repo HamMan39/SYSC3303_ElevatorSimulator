@@ -28,10 +28,11 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         messageBoxes = new MessageBox[numElevators];
 
+        ElevatorView view = new ElevatorView();
 
         for(int i =0; i < numElevators; i++){
             messageBoxes[i] = new MessageBox();
-            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages, elevatorData));
+            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages, elevatorData, view));
         }
 
         for(int i =0; i < numElevators; i++){
@@ -39,6 +40,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
         }
 
         (new ElevatorUpdateSender()).start();
+
     }
     @Override
     public void run() {
