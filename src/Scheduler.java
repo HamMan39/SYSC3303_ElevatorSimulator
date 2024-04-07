@@ -142,7 +142,6 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             }
 
         }
-        System.out.println("Held requests: " + heldRequests.size());
         return false;
     }
 

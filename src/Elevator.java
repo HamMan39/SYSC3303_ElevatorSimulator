@@ -65,14 +65,14 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * Causes the elevator to move one floor in the current direction (specified by elevatorDirection)
      *
      */
-    public void travelFloor() {
-        if (elevatorDirection == Message.Directions.UP){
+    public void travelFloor(int toFloor) {
+        if (currentFloor < toFloor){
             currentState = state.MOVING;
             for (ElevatorViewHandler view : views){
-                view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
+                view.handleStateChange(new ElevatorEvent(this, Message.Directions.UP, currentState));
             }
             for (ElevatorViewHandler view : views){
-                view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
+                view.handleTravelFloor(new ElevatorEvent(this, Message.Directions.UP, currentState));
             }
             try {
                 Thread.sleep(10000);
@@ -81,13 +81,13 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 System.exit(1);
             }
             currentFloor++;
-        } else if (elevatorDirection == Message.Directions.DOWN) {
+        } else if (currentFloor > toFloor) {
             currentState = state.MOVING;
             for (ElevatorViewHandler view : views){
-                view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
+                view.handleStateChange(new ElevatorEvent(this, Message.Directions.DOWN, currentState));
             }
             for (ElevatorViewHandler view : views){
-                view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
+                view.handleTravelFloor(new ElevatorEvent(this, Message.Directions.DOWN, currentState));
             }
             try {
                 Thread.sleep(10000);
@@ -348,7 +348,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 closeDoors();
             } else { // need to move elevator one floor then check again
                 System.out.println(Thread.currentThread().getName() + " - MOVING from floor " + currentFloor + " to floor " + nextStop.getFloor());
-                travelFloor();
+                travelFloor(nextStop.getFloor());
                 updateElevatorData();
             }
 

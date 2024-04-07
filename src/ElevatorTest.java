@@ -75,7 +75,7 @@ public class ElevatorTest {
 
         //Travel to the destination floor
 
-        elevator.travelFloor();
+        elevator.travelFloor(1); // TODO this is broken
 
 
         // Check if the destination floor matches

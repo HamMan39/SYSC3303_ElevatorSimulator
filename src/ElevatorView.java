@@ -156,7 +156,7 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         JButton button = capacity[FLOORS][elevator.getElevatorId()];
         button.setText("Capacity: " + e.getCapacity());
 
-        if (e.getCapacity()>4){
+        if (e.getCapacity()>Elevator.MAX_CAPACITY - 1){
             button.setBackground(Color.RED);
         }else {
             button.setBackground(Color.BLACK);
