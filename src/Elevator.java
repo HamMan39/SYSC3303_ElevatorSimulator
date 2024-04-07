@@ -70,6 +70,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
             for (ElevatorViewHandler view : views){
                 view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
             }
+            for (ElevatorViewHandler view : views){
+                view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
@@ -90,9 +93,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
         } else { // should never be trying to travel floor when direction is idle
             System.err.println(Thread.currentThread().getName() + " travelFloor() error: direction is IDLE");
         }
-        for (ElevatorViewHandler view : views){
-            view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
-        }
+//        for (ElevatorViewHandler view : views){
+//            view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
+//        }
 
 
 //        currentState = state.MOVING;
