@@ -10,14 +10,19 @@ import java.awt.*;
  */
 
 public class ElevatorView extends JFrame implements ElevatorViewHandler{
-    private JButton buttons[][]; // buttons representing grid squares.
+    private JButton buttons[][], directions[][]; // buttons representing grid squares.
     private JPanel board; //panel to hold buttons representing the elevators/floors
     private static final int ELEVATORS=4; // number of elevators
     private static final int FLOORS = 22; //number of floors to service
 
     private static final int MAX_INDEX = FLOORS -1;
 
-
+    // Method to resize the icon
+    private ImageIcon resizeIcon(ImageIcon icon, int width, int height) {
+        Image img = icon.getImage();
+        Image newImg = img.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(newImg);
+    }
     public ElevatorView(){
         super("Elevator System");
         this.setLayout(new BorderLayout());
@@ -26,12 +31,34 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         JLabel titleLabel = new JLabel("The Elevator System Simulator", SwingConstants.CENTER);
         this.add(titleLabel, BorderLayout.NORTH);
         JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new GridLayout(FLOORS, 1));
+        labelPanel.setLayout(new GridLayout(FLOORS+1, 1));
         JLabel floorLabels[][] = new JLabel[FLOORS][1]; //floor labels column
 
         //create board
         board = new JPanel();
-        board.setLayout(new GridLayout(FLOORS, ELEVATORS)); // grid size
+        board.setLayout(new GridLayout(FLOORS+1, ELEVATORS)); // grid size
+
+        //Initialize direction Icon Buttons
+        directions = new JButton[1][ELEVATORS];
+        //initialize the buttons grid and add buttons to the board.
+        for (int j = 0; j < ELEVATORS; j++) {
+            directions[0][j] = new JButton();
+            directions[0][j].setEnabled(true);
+            directions[0][j].setBackground(Color.WHITE);
+
+            //set IDLE direction icons
+            ImageIcon newIcon = new ImageIcon("elevatorIDLE.png");
+            newIcon = resizeIcon(newIcon, 30, 30);
+            // Set the new icon on the button
+            directions[0][j].setIcon(newIcon);
+            board.add(directions[0][j]);
+        }
+        /*Add labels with lamp directions numbers to each row representing a floor*/
+        floorLabels[0][0] = new JLabel(" - LAMPS - ");
+        floorLabels[0][0].setForeground(new Color(0,140,0));
+        labelPanel.add(floorLabels[0][0]);
+
+
         buttons = new JButton[FLOORS][ELEVATORS];
         //initialize the buttons grid and add buttons to the board.
         for (int i = 0; i < FLOORS; i++) {
@@ -59,6 +86,39 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         this.setVisible(true);
     }
 
+    public void updateDirectionLamps(ElevatorEvent event){
+        Elevator elevator = (Elevator) event.getSource();
+        JButton direction = directions[0][elevator.getElevatorId()];
+
+        //Update ICON to UP or DOWN depending on direction
+        if (event.getDirection() == Message.Directions.UP || event.getDirection() == Message.Directions.DOWN){
+            //set direction icons
+            String fileName = "elevator" + event.getDirection().toString() + ".png";
+            ImageIcon newIcon = new ImageIcon(fileName);
+            newIcon = resizeIcon(newIcon, 30, 30);
+            // Set the new icon on the button
+            direction.setIcon(newIcon);
+        }
+
+        //Update ICON to IDLE if state is IDLE
+        if (event.getCurrState() == Elevator.state.IDLE){
+            //set direction icons
+            String fileName = "elevatorIDLE.png";
+            ImageIcon newIcon = new ImageIcon(fileName);
+            newIcon = resizeIcon(newIcon, 30, 30);
+            // Set the new icon on the button
+            direction.setIcon(newIcon);
+        }
+
+        //Show elevator OUT OF SERVICE
+        if (event.getCurrState() == Elevator.state.DISABLED){
+            ImageIcon newIcon = new ImageIcon("elevatorDISABLED.png");
+            newIcon = resizeIcon(newIcon, 70, 60);
+            // Set the new icon on the button
+            direction.setIcon(newIcon);
+        }
+    }
+
     /**
      * Handles state change events for elevators.
      *
@@ -66,12 +126,16 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
      */
     @Override
     public void handleStateChange(ElevatorEvent e) {
+        //Update Directions
+        updateDirectionLamps(e);
+
         Elevator elevator = (Elevator) e.getSource();
 
         //Set text and update colours
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
         button.setBackground(Color.green);
         button.setText(e.getCurrState().toString());
+
     }
 
     /**
@@ -82,6 +146,9 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
     @Override
     public void handleTravelFloor(ElevatorEvent e) {
         Elevator elevator = (Elevator) e.getSource();
+
+        //Update Directions
+        updateDirectionLamps(e);
 
         //Update the elevator moving showing green block and set text
         if (e.getDirection() == Message.Directions.UP){
@@ -108,6 +175,10 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
      */
     @Override
     public void handleTimeoutFailure(ElevatorEvent e) {
+
+        //Update Directions
+        updateDirectionLamps(e);
+
         Elevator elevator = (Elevator) e.getSource();
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
 
@@ -124,6 +195,10 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
     @Override
     public void handleDoorFailure(ElevatorEvent e) {
         Elevator elevator = (Elevator) e.getSource();
+
+        //Update Directions
+        updateDirectionLamps(e);
+
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
 
         //Update the blocks to be red and set the text to door stuck/door closed accordingly
