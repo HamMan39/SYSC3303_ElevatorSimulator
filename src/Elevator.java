@@ -18,9 +18,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private state currentState;
 
     //current floor that elevator is at
-    private int floor, numFloors, elevatorId;
+    private int currentFloor, numFloors, elevatorId;
     //Message boxes for communication with Scheduler
-    private MessageBox incomingMessages, outgoingMessages;
 
     //Messages that have been read but not serviced - pending messages
     private ArrayList<Message> pendingMessages;
@@ -28,6 +27,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorData elevatorData;
 
     private ElevatorStatus elevatorStatus;
+    private ArrayList<requestedStop> requestedStops;
 
     List<ElevatorViewHandler> views;
 
@@ -36,13 +36,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
     /**
      * Constructor for class Elevator
      *
-     * @param box1 Incoming messages MessageBox
-     * @param box2 Outgoing messages MessageBox
      */
-    public Elevator(int elevatorId, int numFloors, MessageBox box1, MessageBox box2, ElevatorData elevatorData, ElevatorViewHandler view) {
-        this.floor = 0;
-        this.incomingMessages = box1;
-        this.outgoingMessages = box2;
+    public Elevator(int elevatorId, int numFloors, ElevatorData elevatorData, ElevatorViewHandler view) {
+        this.currentFloor = 0;
+
         this.elevatorId = elevatorId;
         this.numFloors = numFloors;
         this.currentState = state.IDLE;
@@ -50,6 +47,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.elevatorStatus = new ElevatorStatus();
         this.pendingMessages = new ArrayList<>();
         this.views = new ArrayList<>();
+        this.requestedStops = new ArrayList<>();
 
         addElevatorView(view);
     }
@@ -63,123 +61,147 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * @param destFloor the destination floor.
      */
     public void travelFloors(int destFloor) throws TimeoutException {
-        currentState = state.MOVING;
-        SortedSet<Integer> pendingStops = new TreeSet<>();
-        System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
-        Message.Directions direction;
-        if((floor-destFloor)>0){
-            direction = Message.Directions.DOWN;
-        }else{direction = Message.Directions.UP;}
+//        currentState = state.MOVING;
+//        SortedSet<Integer> pendingStops = new TreeSet<>();
+//        System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
+//        Message.Directions direction;
+//        if((floor-destFloor)>0){
+//            direction = Message.Directions.DOWN;
+//        }else{direction = Message.Directions.UP;}
+//
+//        modifyElevatorData(direction);
+//
+//        lampStatus(direction);
+//
+//        try {
+//            long travelTime = (long)(7399.8);
+//            Thread.sleep(travelTime); //simulate time taken to travel floors
+//        } catch (InterruptedException e) {
+//        }
+//
+//        while(floor != destFloor) {
+//            currentState = state.MOVING;
+//            try {
+//                Thread.sleep(1429);         //simulate time taken to travel one floor
+//            } catch (InterruptedException e) {}
+//
+//            for (ElevatorViewHandler view : views){
+//                view.handleTravelFloor(new ElevatorEvent(this, direction, currentState));
+//            }
+//
+//            if (floor < destFloor) {
+//                floor++;
+//                direction = Message.Directions.UP;
+//                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
+//            } else {
+//                floor--;
+//                direction = Message.Directions.DOWN;
+//                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
+//            }
+//
+//            modifyElevatorData(direction);
+//
+//            // Go through pending messages
+//            Message message = null;
+//            int n;
+//
+//            n = pendingMessages.size();
+//
+//            for (int i = 0; i < n; i++) {
+//                message = pendingMessages.remove(0);
+//
+//                // Checks whether this service can be processed:
+//                // If it's direction is the same as current movement or we have not already passed the floor, or it
+//                // is not beyond the current destination
+//                if (message.getDirection() != direction || (direction == Message.Directions.UP &&
+//                        (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor)) || (direction == Message.Directions.DOWN &&
+//                        (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
+//                    pendingMessages.add(message);    //Adds this request to the list of pending messages
+//                    continue;
+//                }
+//
+//                // Request can be processed, so add a stop for it
+//                pendingStops.add(message.getArrivalFloor());
+//                System.out.println("---" + Thread.currentThread().getName() + " executing request from Scheduler : " + message);
+//
+//                // Check if this request will result in modifying the destination, and add a stop accordingly
+//                if (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+//                        || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
+//                    // Destination has changed, so the old destination should be added as a stop
+//                    pendingStops.add(destFloor);
+//                    destFloor = message.getDestinationFloor();
+//                } else {
+//                    pendingStops.add(message.getDestinationFloor());
+//                }
+//            }
+//
+//            // Check for new messages
+//            n = incomingMessages.getSize();
+//
+//            // Repeat the above logic for new requests
+//            for(int i=0; i<n; i++) {
+//                message = incomingMessages.get();
+//                if(message.getDirection() != direction
+//                        || (direction == Message.Directions.UP
+//                        && (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor))
+//                        || (direction == Message.Directions.DOWN
+//                        && (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
+//                    pendingMessages.add(message);
+//                    continue;
+//                }
+//                pendingStops.add(message.getArrivalFloor());
+//                if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
+//                        || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
+//                    pendingStops.add(destFloor);
+//                    destFloor = message.getDestinationFloor();
+//                } else {
+//                    pendingStops.add(message.getDestinationFloor());
+//                }
+//            }
+//            Integer first = null;
+//            // The pending stops is in sorted order
+//            // If it is going up, processing will be done in ascending order, for going down, it will be descending
+//            if(!pendingStops.isEmpty()) {
+//                 if (direction == Message.Directions.UP)
+//                     first = pendingStops.first();
+//                 else
+//                     first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
+//            }
+//            if(first == null || first != floor)
+//                continue; // no stop at current floor
+//
+//            injectTimeoutFailure(message); //check for timeout failure
+//
+//            loadPassenger(floor);
+//            injectDoorFailure(message); //check for door stuck failure
+//
+//            // stop at current floor
+//            pendingStops.remove(first);
+//        }
+    }
 
-        modifyElevatorData(direction);
+    /**
+     * Distributes a request from the ElevatorSubsystem to a specific elevator
+     * @param request
+     */
+    public void giveRequest(Message request) {
+        requestedStops.add(new requestedStop(request.getArrivalFloor(), false)); // add the arrival floor of the request
+        requestedStops.add(new requestedStop(request.getDestinationFloor(), true)); // add the destination of the request
 
-        lampStatus(direction);
+        //Insertion sort algorithm (organize requests from closest to furthest from elevator)
+        int n = elevatorPositions.size();
+        for (int i = 1; i < n; ++i) {
+            Integer[] key = elevatorPositions.get(i);
+            int j = i - 1;
 
-        try {
-            long travelTime = (long)(7399.8);
-            Thread.sleep(travelTime); //simulate time taken to travel floors
-        } catch (InterruptedException e) {
+            while (j >= 0 && elevatorPositions.get(j)[1] > key[1]) {
+                elevatorPositions.set(j + 1, elevatorPositions.get(j));
+                j = j - 1;
+            }
+            elevatorPositions.set(j + 1, key);
         }
 
-        while(floor != destFloor) {
-            currentState = state.MOVING;
-            try {
-                Thread.sleep(1429);         //simulate time taken to travel one floor
-            } catch (InterruptedException e) {}
 
-            for (ElevatorViewHandler view : views){
-                view.handleTravelFloor(new ElevatorEvent(this, direction, currentState));
-            }
-
-            if (floor < destFloor) {
-                floor++;
-                direction = Message.Directions.UP;
-                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
-            } else {
-                floor--;
-                direction = Message.Directions.DOWN;
-                System.out.println(Thread.currentThread().getName() + " - " + currentState + " " + direction + "(" + floor + ")");
-            }
-
-            modifyElevatorData(direction);
-
-            // Go through pending messages
-            Message message = null;
-            int n;
-
-            n = pendingMessages.size();
-            
-            for (int i = 0; i < n; i++) {
-                message = pendingMessages.remove(0);
-
-                // Checks whether this service can be processed:
-                // If it's direction is the same as current movement or we have not already passed the floor, or it
-                // is not beyond the current destination
-                if (message.getDirection() != direction || (direction == Message.Directions.UP &&
-                        (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor)) || (direction == Message.Directions.DOWN &&
-                        (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
-                    pendingMessages.add(message);    //Adds this request to the list of pending messages
-                    continue;
-                }
-
-                // Request can be processed, so add a stop for it
-                pendingStops.add(message.getArrivalFloor());
-                System.out.println("---" + Thread.currentThread().getName() + " executing request from Scheduler : " + message);
-
-                // Check if this request will result in modifying the destination, and add a stop accordingly
-                if (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
-                        || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
-                    // Destination has changed, so the old destination should be added as a stop
-                    pendingStops.add(destFloor);
-                    destFloor = message.getDestinationFloor();
-                } else {
-                    pendingStops.add(message.getDestinationFloor());
-                }
-            }
-
-            // Check for new messages
-            n = incomingMessages.getSize();
-
-            // Repeat the above logic for new requests
-            for(int i=0; i<n; i++) {
-                message = incomingMessages.get();
-                if(message.getDirection() != direction
-                        || (direction == Message.Directions.UP
-                        && (message.getArrivalFloor() < floor || message.getArrivalFloor() > destFloor))
-                        || (direction == Message.Directions.DOWN
-                        && (message.getArrivalFloor() > floor || message.getArrivalFloor() < destFloor))) {
-                    pendingMessages.add(message);
-                    continue;
-                }
-                pendingStops.add(message.getArrivalFloor());
-                if(direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
-                        || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor) {
-                    pendingStops.add(destFloor);
-                    destFloor = message.getDestinationFloor();
-                } else {
-                    pendingStops.add(message.getDestinationFloor());
-                }
-            }
-            Integer first = null;
-            // The pending stops is in sorted order
-            // If it is going up, processing will be done in ascending order, for going down, it will be descending
-            if(!pendingStops.isEmpty()) {
-                 if (direction == Message.Directions.UP)
-                     first = pendingStops.first();
-                 else
-                     first = pendingStops.last();       //When travelling down, checks for the largest # and services that floor
-            }
-            if(first == null || first != floor)
-                continue; // no stop at current floor
-
-            injectTimeoutFailure(message); //check for timeout failure
-
-            loadPassenger(floor);
-            injectDoorFailure(message); //check for door stuck failure
-
-            // stop at current floor
-            pendingStops.remove(first);
-        }
     }
 
     /**
@@ -206,7 +228,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
             System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
-            if (message.getArrivalFloor() != this.floor) {
+            if (message.getArrivalFloor() != this.currentFloor) {
                 try {
                     travelFloors(message.getArrivalFloor());
                 } catch (TimeoutException e) {
@@ -220,7 +242,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 break; // if a timeout failure occurs, stop the elevator
             }
 
-            loadPassenger(floor);
+            loadPassenger(currentFloor);
             injectDoorFailure(message); //check for door stuck failure
 
             try {
@@ -229,9 +251,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 break; // if a timeout failure occurs, stop the elevator
             }
 
-            loadPassenger(floor);
+            loadPassenger(currentFloor);
             injectDoorFailure(message); //check for door stuck failure
-            arrivalStatus(floor, currentState);
+            arrivalStatus(currentFloor, currentState);
 
             Message.Directions direction = Message.Directions.IDLE;
             lampStatus(direction);
@@ -271,7 +293,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             doorStuck = (doorStuck + 1) % 2;
         }
         currentState = state.DOOR_CLOSED;
-        doorClosed(floor, currentState);
+        doorClosed(currentFloor, currentState);
     }
 
     private void handleTimeout(){
@@ -292,7 +314,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     public Integer getCurrentFloor(){
-        return floor;
+        return currentFloor;
     }
 
     public void loadPassenger(int floor) {
@@ -330,7 +352,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     public synchronized void modifyElevatorData(Message.Directions direction) {
-        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(floor);
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(currentFloor);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
     }
 
@@ -340,6 +362,17 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public int getElevatorId() {
         return elevatorId;
+    }
+
+    class requestedStop {
+        private int floor;
+        private boolean isDestination;
+        public requestedStop(int floor, boolean isDestination){
+            this.floor = floor;
+            this.isDestination = isDestination;
+        }
+        public int getFloor(){return floor;}
+        public boolean getIsDestination(){return isDestination;}
     }
 }
 
