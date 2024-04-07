@@ -85,7 +85,7 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         for (int j = 0; j < ELEVATORS; j++) {
             capacity[FLOORS][j] = new JButton();
             capacity[FLOORS][j].setEnabled(true);
-            capacity[FLOORS][j].setText("Capacity: 0");
+            capacity[FLOORS][j].setText("Load: 0");
             capacity[FLOORS][j].setForeground(Color.lightGray);
             capacity[FLOORS][j].setBackground(Color.BLACK);
 
@@ -154,7 +154,7 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
 
         //Set text and update colours
         JButton button = capacity[FLOORS][elevator.getElevatorId()];
-        button.setText("Capacity: " + e.getCapacity());
+        button.setText("Load: " + e.getCapacity());
 
         if (e.getCapacity()>Elevator.MAX_CAPACITY - 1){
             button.setBackground(Color.RED);

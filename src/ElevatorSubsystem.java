@@ -75,6 +75,10 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
     }
 
+    public Elevator getElevator(int i) {
+        return elevators[i];
+    }
+
     class ElevatorUpdateSender extends Thread {
         private DatagramPacket sendUpdatePacket;
         private DatagramSocket sendUpdateSocket;
