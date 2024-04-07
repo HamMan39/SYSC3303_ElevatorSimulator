@@ -42,7 +42,7 @@ public class ElevatorData {
         for (ElevatorStatus elevator: elevatorSubsystemStatus) {
             elevator.setCurrentFloor(inStream.read());
             elevator.setCurrentDirection(Message.Directions.values()[inStream.read()]);
-            elevator.setCurrentFloor(inStream.read());
+            elevator.setCurrentLoad(inStream.read());
         }
     }
 

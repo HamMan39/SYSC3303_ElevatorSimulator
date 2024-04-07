@@ -22,7 +22,7 @@ public class ElevatorTest {
         elevatorData = new ElevatorData();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages,elevatorData, view);
+        Elevator elevator = new Elevator(0,20,elevatorData, view);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
@@ -58,7 +58,7 @@ public class ElevatorTest {
         elevatorData = new ElevatorData();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages, elevatorData, view);
+        Elevator elevator = new Elevator(0,20, elevatorData, view);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
@@ -74,11 +74,9 @@ public class ElevatorTest {
         assertNotEquals(message.getDestinationFloor(), elevator.getCurrentFloor());
 
         //Travel to the destination floor
-        try {
-            elevator.travelFloors(message.getArrivalFloor());
-        } catch (TimeoutException e) {
-            // error will never happen here
-        }
+
+        elevator.travelFloor();
+
 
         // Check if the destination floor matches
         assertEquals(message.getArrivalFloor(), 2);
