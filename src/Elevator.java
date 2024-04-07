@@ -1,7 +1,6 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 /**
  * This Class represents the Elevator which travels between floors according to
@@ -32,11 +31,13 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ArrayList<RequestedStop> requestedStops;
     private Message.Directions elevatorDirection; // direction elevator is moving, only used internally and not tied to the state of the elevator (although they should be similar)
     private int currentLoad;
+    private boolean elevatorDisabled;
+    private int requestIDcount; // used for assigning requests a unique id, only needed for re-scheduling purposes if elevator fails
+    private ArrayList<Message> requestHistory;
 
     List<ElevatorViewHandler> views;
 
     private int doorStuck = 1;
-    private SortedSet<Integer> criticalFailFloors;
 
 
 
@@ -55,9 +56,11 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.pendingMessages = new ArrayList<>();
         this.views = new ArrayList<>();
         this.requestedStops = new ArrayList<>();
-        this. elevatorDirection = Message.Directions.IDLE;
+        this.elevatorDirection = Message.Directions.IDLE;
         this.currentLoad = 0;
-        this.criticalFailFloors = new TreeSet<>();
+        this.elevatorDisabled = false;
+        this.requestIDcount = 0;
+        this.requestHistory = new ArrayList<Message>();
         addElevatorView(view);
     }
 
@@ -120,8 +123,12 @@ public class Elevator extends CommunicationRPC implements Runnable {
             System.err.println(Thread.currentThread().getName() + " elevator received request in wrong direction. Current direction: " + elevatorDirection + " request direction: " + request.getDirection());
         }
 
-        requestedStops.add(new RequestedStop(request.getArrivalFloor(), false)); // add the arrival floor of the request
-        requestedStops.add(new RequestedStop(request.getDestinationFloor(), true)); // add the destination of the request
+        requestHistory.add(request); // save a history of the requests in case we need to reschedule some
+
+        requestedStops.add(new RequestedStop(request.getArrivalFloor(), false, requestIDcount)); // add the arrival floor of the request
+        requestedStops.add(new RequestedStop(request.getDestinationFloor(), true, requestIDcount)); // add the destination of the request
+
+        requestIDcount++; // want each request to have a unique id with it so increment every time we add a new request
 
         currentLoad++; // increase the number of requests (the "load") by one
 
@@ -156,16 +163,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
 
         if (request.getFailure()== Message.Failures.TIMEOUT) {
-            criticalFailFloors.add(request.getArrivalFloor());
-        }
+                injectTimeoutFailure();
 
-        while (!criticalFailFloors.isEmpty()) {
-                currentState = state.DISABLED;
-                try {
-                    injectTimeoutFailure();
-                } catch (TimeoutException e) {
-                    return; // Stop elevator operation if a timeout failure occurs
-                }
         }
         if (request.getFailure() == Message.Failures.DOORS && doorStuck == 1) {
              currentState = state.DOOR_STUCK;
@@ -177,6 +176,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     }
 
+    private void disableElevator(){
+        elevatorDisabled = true;
+    }
+
     /**
      * Execute the Elevator thread operations. Receive messages from Scheduler
      * and sends the messages back through the MessageBox
@@ -184,7 +187,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
+        while (!elevatorDisabled) {
             synchronized (this) {
                 while (currentLoad == 0) {
 
@@ -250,7 +253,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
 
         }
-
+        handleTimeout();
     }
 
     public void lampStatus(Message.Directions direction) {
@@ -260,13 +263,12 @@ public class Elevator extends CommunicationRPC implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
-    private void injectTimeoutFailure() throws TimeoutException {
-            handleTimeout();
+    private void injectTimeoutFailure() {
             for (ElevatorViewHandler view: views){
                 view.handleTimeoutFailure(new ElevatorEvent(this, currentState));
             }
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
-            throw new TimeoutException();
+            disableElevator();
 
     }
     private void injectDoorFailure(){
@@ -286,19 +288,51 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     private void handleTimeout(){
          sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
+        currentState = state.DISABLED;
+
+        ArrayList<Integer> rescheduledRequests = new ArrayList<>(); // list of requests that have already been re-scheduled
+
+        for (RequestedStop rs : requestedStops) {
+            if (!(rescheduledRequests.contains(rs.getRequestID()))) {
+                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                byteStream.write(-1); // tells scheduler that this data is a request that needs to be rescheduled
+
+                if (rs.getIsDestination()) {
+                    Message request = requestHistory.get(rs.getRequestID()); // find the corresponding request for this floor so the request can be rescheduled
+                    request.setArrivalFloor(currentFloor); // we are carrying this passenger so we need a new request for another elevator to pick them up at the current floor
+                    try {
+                        byteStream.write(request.toByteArray());
+                    } catch (IOException e){
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                    rescheduledRequests.add(rs.getRequestID()); // remember that this request has already been rescheduled
+                } else { // this is an arrival request so it has not been picked up yet
+                    Message request = requestHistory.get(rs.getRequestID()); // find the corresponding request for this floor so the request can be rescheduled
+                    try {
+                        byteStream.write(request.toByteArray());
+                    } catch (IOException e){
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                    rescheduledRequests.add(rs.getRequestID()); // remember that this request has already been rescheduled
+                }
+            }
+        }
+
 
         // TODO send messages back to scheduler to be rescheduled
-        for (Message m: pendingMessages){
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            byteStream.write(-1);
-            try {
-                byteStream.write(m.toByteArray());
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-            sendAndReceive(byteStream.toByteArray(), 66);
-        }
+//        for (Message m: pendingMessages){
+//            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+//            byteStream.write(-1);
+//            try {
+//                byteStream.write(m.toByteArray());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                System.exit(1);
+//            }
+//            sendAndReceive(byteStream.toByteArray(), 66);
+//        }
     }
 
     public Integer getCurrentFloor(){
@@ -374,12 +408,15 @@ public class Elevator extends CommunicationRPC implements Runnable {
     class RequestedStop {
         private int floor;
         private boolean isDestination;
-        public RequestedStop(int floor, boolean isDestination){
+        private int requestID;// the corresponding id of the request that this stop belongs to, only used when rescheduling a disabled elevator
+        public RequestedStop(int floor, boolean isDestination, int requestID){
             this.floor = floor;
             this.isDestination = isDestination;
+            this.requestID = requestID;
         }
         public int getFloor(){return floor;}
         public boolean getIsDestination(){return isDestination;}
+        public int getRequestID(){return requestID;}
     }
 
     public state getCurrentState() {

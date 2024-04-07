@@ -71,6 +71,9 @@ public class Message {
     }
 
     public Failures getFailure() {return failure;}
+    public void setArrivalFloor(int newFloor){
+        this.arrivalFloor = newFloor;
+    }
 
     @Override
     public String toString() {
