@@ -222,7 +222,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
         }
 
-        Thread.currentThread().interrupt(); // if the thread is sleeping while "travelling" this wakes it up to re-check which floor to go to
+        notify();
 
     }
 
@@ -234,6 +234,28 @@ public class Elevator extends CommunicationRPC implements Runnable {
     public void run() {
 
         while (true) {
+            while (currentLoad == 0) {
+                // close doors?
+                // set state to idle?
+                try {
+                    wait(); // wait until a request is received
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                  System.exit(1);
+                }
+            }
+
+            RequestedStop nextStop = requestedStops.get(0);
+
+            if (nextStop.getFloor() == currentFloor){
+                // open elevator doors
+                // wait for loading/unloading
+
+                // loop through requests at this floor, sleeping each time, until all passengers have loaded/unloaded
+                // in the loop remove passengers as we go, decrementing load for each destination
+
+                // close doors?
+            }
 
         }
 
