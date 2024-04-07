@@ -245,6 +245,11 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
         System.out.println("---" + Thread.currentThread().getName() + " gave request (" + request + ") to Elevator " + elevatorId + ". Current load: " + currentLoad);
 
+        //Update view to show capacity updates
+        for (ElevatorViewHandler view : views){
+            view.handleCapacityChange(new ElevatorEvent(this, currentLoad));
+        }
+
         updateElevatorData(); //multiple updates ensure scheduler has the most accurate information
 
         //Insertion sort algorithm (organize requests from closest to furthest from elevator)
@@ -325,6 +330,11 @@ public class Elevator extends CommunicationRPC implements Runnable {
                         }
                         if (rs.getIsDestination()) { // if a passenger is getting off then decrease load
                             currentLoad--;
+
+                            //Update view to show capacity updates
+                            for (ElevatorViewHandler view : views){
+                                view.handleCapacityChange(new ElevatorEvent(this, currentLoad));
+                            }
                             System.out.println("---" + Thread.currentThread().getName() + " passenger departed. Current load: " + currentLoad);
                         } else {
                             System.out.println("---" + Thread.currentThread().getName() + " passenger picked up.");

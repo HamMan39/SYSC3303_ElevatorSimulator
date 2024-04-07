@@ -9,6 +9,7 @@ public class ElevatorEvent extends EventObject {
     private Message.Directions direction;
     private Message.Failures failure;
     private  Elevator.state currState;
+    private int capacity;
     /**
      * Constructs an elevator Event.
      * @param source the Elevator object on which the Event initially occurred
@@ -16,16 +17,6 @@ public class ElevatorEvent extends EventObject {
      */
     public ElevatorEvent(Elevator source) {
         super(source);
-    }
-
-    /**
-     * Elevator Failure event constructor
-     * @param source
-     * @param failure
-     */
-    public ElevatorEvent(Elevator source, Message.Failures failure){
-        super(source);
-        this.failure = failure;
     }
 
     /**
@@ -50,13 +41,21 @@ public class ElevatorEvent extends EventObject {
         this.currState = state;
     }
 
+    /**
+     * Elevator change of state event
+     * @param source
+     * @param capacity
+     */
+    public ElevatorEvent(Elevator source, int capacity){
+        super(source);
+        this.capacity = capacity;
+    }
+
     public Message.Directions getDirection() {
         return direction;
     }
 
-    public Message.Failures getFailure() {
-        return failure;
-    }
+    public int getCapacity(){return capacity;}
 
     public Elevator.state getCurrState() {
         return currState;

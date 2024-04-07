@@ -4,6 +4,7 @@
  * */
 public interface ElevatorViewHandler {
     public void handleStateChange(ElevatorEvent e);
+    public void handleCapacityChange(ElevatorEvent e);
     public void handleTravelFloor(ElevatorEvent e);
     public void handleTimeoutFailure(ElevatorEvent e);
     public void handleDoorFailure(ElevatorEvent e);
