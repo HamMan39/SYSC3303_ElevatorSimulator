@@ -12,6 +12,9 @@ import java.util.concurrent.TimeoutException;
  * This Class represents the Elevator which travels between floors according to
  * received messages from the scheduler class, and alerts the Scheduler upon arrival
  * at the destination floor.
+ * @author Nikita Sara Vijay 101195009
+ * @author Areej Mahmoud 101218260
+ * @author Khola Haseeb 101192363
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
