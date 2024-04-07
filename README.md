@@ -39,6 +39,13 @@ Iteration 4:
 4. Owen Petersen (101233850),  Implemented re-scheduling failed elevator requests and updated ElevatorData
 5. Nikita Sara Vijay (101195009), Updated Elevator PendingFloors Algorithm for efficiency
 
+Iteration 5:
+1. Mahnoor Fatima (101192353), Implemented ElevatorViewHandler methods, lamps and capacity in GUI.
+2. Khola Haseeb (101192363), Implemented Elevator loads and ElevatorTest class
+3. Areej Mahmoud (101218260), Implemented GUI Design and created ElevatorEvent and handler interface.
+4. Owen Petersen (101233850),  Updated Elevator algorithm and capacity handling and refactored Elevator class.
+5. Nikita Sara Vijay (101195009), Updated timeout and door stuck failure injections for GUI
+
 **Project Iteration 5**
 
 This Java project simulates an elevator system with 3 main subsystems - Elevator, Floor, and Scheduler. The Elevator moves between floors, the Floor subsystem reads input data from a file, and the Scheduler manages the communication between the Elevator and Floor.
