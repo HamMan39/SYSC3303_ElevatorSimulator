@@ -10,7 +10,7 @@ import java.awt.*;
  */
 
 public class ElevatorView extends JFrame implements ElevatorViewHandler{
-    private JButton buttons[][], directions[][]; // buttons representing grid squares.
+    private JButton buttons[][], directions[][], capacity[][]; // buttons representing grid squares.
     private JPanel board; //panel to hold buttons representing the elevators/floors
     private static final int ELEVATORS=4; // number of elevators
     private static final int FLOORS = 22; //number of floors to service
@@ -31,12 +31,12 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         JLabel titleLabel = new JLabel("The Elevator System Simulator", SwingConstants.CENTER);
         this.add(titleLabel, BorderLayout.NORTH);
         JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new GridLayout(FLOORS+1, 1));
-        JLabel floorLabels[][] = new JLabel[FLOORS][1]; //floor labels column
+        labelPanel.setLayout(new GridLayout(FLOORS+2, 1));
+        JLabel floorLabels[][] = new JLabel[FLOORS+2][1]; //floor labels column
 
         //create board
         board = new JPanel();
-        board.setLayout(new GridLayout(FLOORS+1, ELEVATORS)); // grid size
+        board.setLayout(new GridLayout(FLOORS+2, ELEVATORS)); // grid size
 
         //Initialize direction Icon Buttons
         directions = new JButton[1][ELEVATORS];
@@ -58,16 +58,17 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         floorLabels[0][0].setForeground(new Color(0,140,0));
         labelPanel.add(floorLabels[0][0]);
 
-
+        //Initialize Elevator
         buttons = new JButton[FLOORS][ELEVATORS];
         //initialize the buttons grid and add buttons to the board.
         for (int i = 0; i < FLOORS; i++) {
             for (int j = 0; j < ELEVATORS; j++) {
                 buttons[i][j] = new JButton();
-                buttons[i][j].setEnabled(false);
+                buttons[i][j].setEnabled(true);
                 if (i == MAX_INDEX){
                     buttons[i][j].setBackground(Color.green);
                     buttons[i][j].setText("IDLE");
+                    buttons[i][j].setForeground(Color.BLACK);
                 }else {
                     buttons[i][j].setBackground(Color.lightGray);
                 }
@@ -77,6 +78,24 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
             floorLabels[i][0] = new JLabel(" Floor "+ (MAX_INDEX -i)+" >> ");
             labelPanel.add(floorLabels[i][0]);
         }
+
+        //Initialize capacity bar
+        capacity = new JButton[FLOORS+1][ELEVATORS];
+        //initialize the buttons grid and add buttons to the board.
+        for (int j = 0; j < ELEVATORS; j++) {
+            capacity[FLOORS][j] = new JButton();
+            capacity[FLOORS][j].setEnabled(true);
+            capacity[FLOORS][j].setText("Capacity: 0");
+            capacity[FLOORS][j].setForeground(Color.lightGray);
+            capacity[FLOORS][j].setBackground(Color.BLACK);
+
+            board.add(capacity[FLOORS][j]);
+        }
+        /*Add labels with capacity numbers*/
+        floorLabels[FLOORS][0] = new JLabel(" - CAPACITY - ");
+        floorLabels[FLOORS][0].setForeground(new Color(120,0,0));
+        labelPanel.add(floorLabels[FLOORS][0]);
+
         /* Place the board at the center, and labels to the left. */
         this.add(board, BorderLayout.CENTER);
         this.add(labelPanel, BorderLayout.WEST);
@@ -86,6 +105,11 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         this.setVisible(true);
     }
 
+    /**
+     * Handles the direction updates for the lamps.
+     *
+     * @param event The elevator event triggering the state change.
+     */
     public void updateDirectionLamps(ElevatorEvent event){
         Elevator elevator = (Elevator) event.getSource();
         JButton direction = directions[0][elevator.getElevatorId()];
@@ -116,6 +140,26 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
             newIcon = resizeIcon(newIcon, 70, 60);
             // Set the new icon on the button
             direction.setIcon(newIcon);
+        }
+    }
+
+    /**
+     * Handles state change events for elevators.
+     *
+     * @param e The elevator event triggering the state change.
+     */
+    @Override
+    public void handleCapacityChange(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
+
+        //Set text and update colours
+        JButton button = capacity[FLOORS][elevator.getElevatorId()];
+        button.setText("Capacity: " + e.getCapacity());
+
+        if (e.getCapacity()>4){
+            button.setBackground(Color.RED);
+        }else {
+            button.setBackground(Color.BLACK);
         }
     }
 
