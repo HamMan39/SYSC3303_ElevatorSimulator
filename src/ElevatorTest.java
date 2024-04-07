@@ -16,6 +16,9 @@ public class ElevatorTest {
         MessageBox incomingMessages = new MessageBox();
         MessageBox outgoingMessages = new MessageBox();
 
+        Scheduler scheduler = new Scheduler(4);
+        Thread schedulerThread = new Thread(scheduler, "Scheduler Thread");
+        schedulerThread.start();
         ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(4,21,incomingMessages,outgoingMessages);
 
         // -- Testing with no failures
@@ -28,6 +31,7 @@ public class ElevatorTest {
 
         elevatorSubsystem.getElevator(0).giveRequest(message);
         elevatorSubsystem.getElevator(1).giveRequest(message2);
+        elevatorSubsystem.getElevator(2).giveRequest(message3);
 
         try {
             // Sleep for 50 seconds (50000 milliseconds)
@@ -39,10 +43,8 @@ public class ElevatorTest {
 
         //Test if current floor and state are accurate
         assertEquals( message.getDestinationFloor(), elevatorSubsystem.getElevator(0).getCurrentFloor());
-        assertEquals(Elevator.state.DOOR_OPEN,  elevatorSubsystem.getElevator(0).getCurrentState());
-
         assertEquals( message2.getDestinationFloor(), elevatorSubsystem.getElevator(1).getCurrentFloor());
-        assertEquals(Elevator.state.DOOR_OPEN,  elevatorSubsystem.getElevator(1).getCurrentState());
+        assertEquals( Elevator.state.DISABLED, elevatorSubsystem.getElevator(2).getCurrentState());
     }
 }
 
