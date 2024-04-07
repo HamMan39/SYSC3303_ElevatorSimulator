@@ -64,9 +64,12 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * Causes the elevator to move one floor in the current direction (specified by elevatorDirection)
      *
      */
-    public void travelFloor() throws TimeoutException {
+    public void travelFloor() {
         if (elevatorDirection == Message.Directions.UP){
             currentState = state.MOVING;
+            for (ElevatorViewHandler view : views){
+                view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
@@ -86,6 +89,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
             currentFloor--;
         } else { // should never be trying to travel floor when direction is idle
             System.err.println(Thread.currentThread().getName() + " travelFloor() error: direction is IDLE");
+        }
+        for (ElevatorViewHandler view : views){
+            view.handleTravelFloor(new ElevatorEvent(this, elevatorDirection, currentState));
         }
 
 
@@ -219,11 +225,16 @@ public class Elevator extends CommunicationRPC implements Runnable {
             updateElevatorData();
 
             // Elevator is "aimed" in a direction (up or down) but not moving yet, so direction is up/down but state is still idle
+        } else if (elevatorDirection != request.getDirection()) {
+            System.err.println(Thread.currentThread().getName() + " elevator received request in wrong direction. Current direction: " + elevatorDirection + " request direction: " + request.getDirection());
         }
+
         requestedStops.add(new RequestedStop(request.getArrivalFloor(), false)); // add the arrival floor of the request
         requestedStops.add(new RequestedStop(request.getDestinationFloor(), true)); // add the destination of the request
 
         currentLoad++; // increase the number of requests (the "load") by one
+
+        updateElevatorData(); //multiple updates ensure scheduler has the most accurate information
 
         //Insertion sort algorithm (organize requests from closest to furthest from elevator)
         int n = requestedStops.size();
@@ -248,6 +259,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
         //TODO inject faults
 
+        updateElevatorData();
         notify();
 
     }
@@ -262,10 +274,15 @@ public class Elevator extends CommunicationRPC implements Runnable {
         while (true) {
             while (currentLoad == 0) {
 
-                currentState = state.IDLE; //TODO update view
+                currentState = state.IDLE;
+                for (ElevatorViewHandler view : views){
+                    view.handleStateChange(new ElevatorEvent(this, elevatorDirection, currentState));
+                }
                 elevatorDirection = Message.Directions.IDLE;
+                updateElevatorData();
+
                 try {
-                    wait(); // wait until a request is received
+                    wait(); // wait until we have requests to deal with
                 } catch (InterruptedException e) {
                   e.printStackTrace();
                   System.exit(1);
@@ -294,12 +311,14 @@ public class Elevator extends CommunicationRPC implements Runnable {
                         currentLoad--;
                     }
                     it.remove(); // remove the stop from the list
+
+                    updateElevatorData();
                 }
 
                 closeDoors();
             } else { // need to move elevator one floor then check again
-                //set state to moving, or change state in travel method
-                // travel floors
+                travelFloor();
+                updateElevatorData();
             }
 
         }
@@ -386,7 +405,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             doorStuck = (doorStuck + 1) % 2;
         }
         currentState = state.DOOR_CLOSED;
-        closeDoors(currentFloor, currentState);
+        closeDoors();
     }
 
     private void handleTimeout(){
@@ -412,7 +431,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void loadPassenger(int floor) {
         currentState = state.DOOR_OPEN;
-        openDoors(floor, currentState);
+        openDoors();
         Message.Directions direction = Message.Directions.IDLE;
         lampStatus(direction);
         try {
