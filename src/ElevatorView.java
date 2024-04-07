@@ -88,12 +88,12 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         Elevator elevator = (Elevator) e.getSource();
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
         button.setBackground(Color.RED);
-        button.setText("DOOR STUCK");
+        button.setText(e.getCurrState().toString());
+        if (e.getCurrState() == Elevator.state.DOOR_CLOSED) {
+            button.setBackground(Color.GREEN);
+        }
     }
 
-    private int indexToFloor(int idx) {
-        return FLOORS-1 - idx;
-    }
     public static void main(String[] args) {
         new ElevatorView();
     }

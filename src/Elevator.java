@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
-    public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
+    public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED, DOOR_STUCK}
 
     private state currentState;
 
@@ -341,8 +341,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     }
     private void injectDoorFailure(){
+            currentState = state.DOOR_STUCK;
             for (ElevatorViewHandler view : views){
-                view.handleDoorFailure(new ElevatorEvent(this));
+                view.handleDoorFailure(new ElevatorEvent(this, currentState));
             }
             System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
@@ -350,8 +351,11 @@ public class Elevator extends CommunicationRPC implements Runnable {
             } catch (InterruptedException e) {
             }
 
-        currentState = state.DOOR_CLOSED;
-        doorClosed(floor, currentState);
+            currentState = state.DOOR_CLOSED;
+            for (ElevatorViewHandler view : views){
+                view.handleDoorFailure(new ElevatorEvent(this, currentState));
+            }
+            doorClosed(floor, currentState);
     }
 
     private void handleTimeout(){
@@ -397,6 +401,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void doorClosed(int floor, state currentState){
         System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        currentState = state.DOOR_CLOSED;
         for (ElevatorViewHandler view : views){
             view.handleStateChange(new ElevatorEvent(this, currentState));
         }
