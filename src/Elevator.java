@@ -222,6 +222,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
         }
 
+        //TODO inject faults
+
         notify();
 
     }
@@ -235,7 +237,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
         while (true) {
             while (currentLoad == 0) {
-                // close doors?
+
                 // set state to idle?
                 try {
                     wait(); // wait until a request is received
@@ -255,6 +257,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 // in the loop remove passengers as we go, decrementing load for each destination
 
                 // close doors?
+            } else { // need to move elevator one floor then check again
+                //set state to moving
+                // travel floors
             }
 
         }
@@ -347,7 +352,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private void handleTimeout(){
          sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
 
-        // send messages back to scheduler to be rescheduled
+        // TODO send messages back to scheduler to be rescheduled
         for (Message m: pendingMessages){
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             byteStream.write(-1);
@@ -391,6 +396,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
     }
 
+    //TODO figure out what this is doing
     public void arrivalStatus(int floor, state currentState){
         currentState = state.IDLE;
         System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
@@ -399,14 +405,13 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
     }
 
-    public synchronized void modifyElevatorData(Message.Directions direction) {
+    public synchronized void modifyElevatorData() {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(currentFloor);
-        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(direction);
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(elevatorDirection);
+        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentLoad(currentLoad);
+
     }
 
-    public synchronized void updateElevatorLoad(int elevatorLoad){
-        elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentLoad(elevatorLoad);
-    }
 
     public int getElevatorId() {
         return elevatorId;
