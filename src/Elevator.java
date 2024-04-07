@@ -218,6 +218,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
         }
 
+        Thread.currentThread().interrupt(); // if the thread is sleeping while "travelling" this wakes it up to re-check which floor to go to
 
     }
 
