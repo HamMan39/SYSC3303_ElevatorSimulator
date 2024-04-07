@@ -32,7 +32,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
         for(int i =0; i < numElevators; i++){
             messageBoxes[i] = new MessageBox();
-            elevators[i] = new Thread(new Elevator(i, numFloors, messageBoxes[i], outgoingMessages, elevatorData, view));
+            elevators[i] = new Thread(new Elevator(i, numFloors, elevatorData, view));
         }
 
         for(int i =0; i < numElevators; i++){
