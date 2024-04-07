@@ -444,7 +444,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
             System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
-                Thread.sleep(20000); //add a delay for time taken to handle door failure
+                Thread.sleep(2000); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
             }
             doorStuck = (doorStuck + 1) % 2;
