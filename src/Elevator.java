@@ -61,10 +61,34 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     /**
-     * Simulate Elevator travelling from current floor to destFloor
-     * @param destFloor the destination floor.
+     * Causes the elevator to move one floor in the current direction (specified by elevatorDirection)
+     *
      */
-    public void travelFloors(int destFloor) throws TimeoutException {
+    public void travelFloor() throws TimeoutException {
+        if (elevatorDirection == Message.Directions.UP){
+            currentState = state.MOVING;
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            currentFloor++;
+        } else if (elevatorDirection == Message.Directions.DOWN) {
+            currentState = state.MOVING;
+
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            currentFloor--;
+        } else { // should never be trying to travel floor when direction is idle
+            System.err.println(Thread.currentThread().getName() + " travelFloor() error: direction is IDLE");
+        }
+
+
 //        currentState = state.MOVING;
 //        SortedSet<Integer> pendingStops = new TreeSet<>();
 //        System.out.println(Thread.currentThread().getName() + " - " + currentState +  " from floor " + floor + " to floor " + destFloor);
@@ -238,7 +262,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
         while (true) {
             while (currentLoad == 0) {
 
-                // set state to idle?
+                currentState = state.IDLE; //TODO update view
+                elevatorDirection = Message.Directions.IDLE;
                 try {
                     wait(); // wait until a request is received
                 } catch (InterruptedException e) {
@@ -252,14 +277,28 @@ public class Elevator extends CommunicationRPC implements Runnable {
             if (nextStop.getFloor() == currentFloor){
                 openDoors();
 
-                // wait for loading/unloading
+                // This while-loop handles loading/unloading all requests at this floor
+                Iterator<RequestedStop> it = requestedStops.iterator(); // using an iterator for easier removal of items
+                while (it.hasNext()) {
+                    RequestedStop rs = it.next();
+                    if (rs.getFloor() != currentFloor) { // if a request is not from the current floor then stop the loop
+                        break;
+                    }
+                    try {
+                        Thread.sleep(5000); // simulate 5 seconds for loading/unloading a single passenger
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                    if (rs.getIsDestination()) { // if a passenger is getting off then decrease load
+                        currentLoad--;
+                    }
+                    it.remove(); // remove the stop from the list
+                }
 
-                // loop through requests at this floor, sleeping each time, until all passengers have loaded/unloaded
-                // in the loop remove passengers as we go, decrementing load for each destination
-
-                // close doors?
+                closeDoors();
             } else { // need to move elevator one floor then check again
-                //set state to moving
+                //set state to moving, or change state in travel method
                 // travel floors
             }
 
@@ -434,6 +473,9 @@ public class Elevator extends CommunicationRPC implements Runnable {
         return elevatorId;
     }
 
+    /**
+     * This data structure is used to store the requested stops for an elevator after it receives a command/Message
+     */
     class RequestedStop {
         private int floor;
         private boolean isDestination;
