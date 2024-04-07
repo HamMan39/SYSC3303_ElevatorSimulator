@@ -192,7 +192,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         // If elevator is not moving, save what the new direction is so the stops can be sorted
         if (elevatorDirection == Message.Directions.IDLE){
             elevatorDirection = request.getDirection();
-            modifyElevatorData(elevatorDirection);
+            updateElevatorData();
 
             // Elevator is "aimed" in a direction (up or down) but not moving yet, so direction is up/down but state is still idle
         }
@@ -405,7 +405,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
     }
 
-    public synchronized void modifyElevatorData() {
+    public synchronized void updateElevatorData() {
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentFloor(currentFloor);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentDirection(elevatorDirection);
         elevatorData.getElevatorSubsystemStatus().get(elevatorId).setCurrentLoad(currentLoad);
