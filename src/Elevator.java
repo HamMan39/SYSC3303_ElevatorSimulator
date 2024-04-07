@@ -12,9 +12,6 @@ import java.util.concurrent.TimeoutException;
  * This Class represents the Elevator which travels between floors according to
  * received messages from the scheduler class, and alerts the Scheduler upon arrival
  * at the destination floor.
- * @author Nikita Sara Vijay 101195009
- * @author Areej Mahmoud 101218260
- * @author Khola Haseeb 101192363
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
@@ -137,12 +134,14 @@ public class Elevator extends CommunicationRPC implements Runnable {
                     continue;
                 }
 
-                // if elevator is moving to arrival point, then the final destination CANNOT be changed en route
+                // if elevator is moving to arrival point, then the final destination cannot be changed en route
                 if(isArrival &&
                         (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                                 || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor)) {
+                    pendingMessages.add(message);    //Adds this request to the list of pending messages
                     continue;
                 }
+
 
                 // Request can be processed, so add a stop for it
                 //pendingStops.add(message.getArrivalFloor());
@@ -188,8 +187,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 if(isArrival &&
                         (direction == Message.Directions.UP && message.getDestinationFloor() > destFloor
                                 || direction == Message.Directions.DOWN && message.getDestinationFloor() < destFloor)) {
+                    pendingMessages.add(message);
                     continue;
                 }
+                System.out.println("---" + Thread.currentThread().getName() + " executing request from Scheduler : " + message);
 
                 pendingArrs.add(message.getArrivalFloor());
                 if (message.getFailure()== Message.Failures.TIMEOUT){
@@ -212,7 +213,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
             if(!pendingArrs.isEmpty()) {
                 if (direction == Message.Directions.UP) {
-                    arr1 = pendingArrs.first();
+                    arr1 = pendingArrs.first();        //Going up
                 }else{
                     arr1 = pendingArrs.last();       //When travelling down, checks for the largest # and services that floor
                 }
@@ -226,7 +227,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 }
             }
 
-            if((arr1 == null && dest1 == null) || (arr1 != floor && dest1 != floor))
+            if((arr1 == null || arr1 != floor) && (dest1 == null || dest1 != floor))  //if not at arrival and destination
                 continue; // no stop at current floor
 
             if(arr1 != null &&  arr1 == floor) {
@@ -237,8 +238,12 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 pendingArrs.remove(arr1);
             }
             if(dest1 != null && dest1 == floor) {
+                if(arr1 == null || arr1 != floor){    //the current floor is an arrival and destination floor
+                    loadPassenger(floor);
+                }
                 pendingDests.remove(dest1);
             }
+
             if(doorFailFloors.contains(floor)) {
                 injectDoorFailure(); //check for door stuck failure
                 doorFailFloors.remove(floor);
@@ -327,12 +332,18 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
     }
     private void injectTimeoutFailure() throws TimeoutException {
+            for (ElevatorViewHandler view : views){
+                view.handleTimeoutFailure(new ElevatorEvent(this));
+            }
             handleTimeout();
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             throw new TimeoutException();
 
     }
     private void injectDoorFailure(){
+            for (ElevatorViewHandler view : views){
+                view.handleDoorFailure(new ElevatorEvent(this));
+            }
             System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
@@ -373,7 +384,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
             Thread.sleep(10881); //based on iteration 0 (10.881 s to load 1 person)
         } catch (InterruptedException e) {
         }
-
+        currentState = state.DOOR_CLOSED;
+        doorClosed(floor, currentState);
     }
 
     public void doorOpen(int floor, state currentState){

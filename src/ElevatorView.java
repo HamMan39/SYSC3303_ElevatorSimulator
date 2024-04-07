@@ -77,12 +77,22 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
 
     @Override
     public void handleTimeoutFailure(ElevatorEvent e) {
-
+        Elevator elevator = (Elevator) e.getSource();
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
+        button.setBackground(Color.BLACK);
+        button.setText("TIMEOUT FAILURE");
     }
 
     @Override
     public void handleDoorFailure(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
+        button.setBackground(Color.RED);
+        button.setText("DOOR STUCK");
+    }
 
+    private int indexToFloor(int idx) {
+        return FLOORS-1 - idx;
     }
     public static void main(String[] args) {
         new ElevatorView();
