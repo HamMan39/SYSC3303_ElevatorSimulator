@@ -35,7 +35,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
     List<ElevatorViewHandler> views;
 
     private int doorStuck = 1;
-    
+    private SortedSet<Integer> criticalFailFloors;
+
+
+
     /**
      * Constructor for class Elevator
      *
@@ -53,7 +56,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.requestedStops = new ArrayList<>();
         this. elevatorDirection = Message.Directions.IDLE;
         this.currentLoad = 0;
-
+        this.criticalFailFloors = new TreeSet<>();
         addElevatorView(view);
     }
 
@@ -273,7 +276,22 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
         }
 
-        //TODO inject faults
+        if (request.getFailure()== Message.Failures.TIMEOUT) {
+            criticalFailFloors.add(request.getArrivalFloor());
+        }
+
+        while (!criticalFailFloors.isEmpty()) {
+                currentState = state.DISABLED;
+                try {
+                    injectTimeoutFailure();
+                } catch (TimeoutException e) {
+                    return; // Stop elevator operation if a timeout failure occurs
+                }
+        }
+        if (request.getFailure() == Message.Failures.DOORS && doorStuck == 1) {
+             currentState = state.DOOR_STUCK;
+             injectDoorFailure(); //check for door stuck failure
+        }
 
         updateElevatorData();
         notify();
@@ -411,20 +429,16 @@ public class Elevator extends CommunicationRPC implements Runnable {
             System.out.println("Lamp OFF, elevator has arrived.");
         }
     }
-    private void injectTimeoutFailure(Message msg) throws TimeoutException {
-        if (msg.getFailure()== Message.Failures.TIMEOUT){
-            currentState = state.DISABLED;
+    private void injectTimeoutFailure() throws TimeoutException {
             handleTimeout();
             for (ElevatorViewHandler view: views){
                 view.handleTimeoutFailure(new ElevatorEvent(this, currentState));
             }
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             throw new TimeoutException();
-        }
+
     }
-    private void injectDoorFailure(Message msg){
-        if (msg.getFailure() == Message.Failures.DOORS && doorStuck == 1){
-            currentState = state.DOOR_STUCK;
+    private void injectDoorFailure(){
             for (ElevatorViewHandler view : views){
                 view.handleDoorFailure(new ElevatorEvent(this, currentState));
             }
@@ -434,7 +448,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             } catch (InterruptedException e) {
             }
             doorStuck = (doorStuck + 1) % 2;
-        }
+
         currentState = state.DOOR_CLOSED;
         closeDoors();
     }
