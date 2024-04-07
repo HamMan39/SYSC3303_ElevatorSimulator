@@ -13,7 +13,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
-    public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DISABLED}
+    public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DOOR_STUCK, DISABLED}
 
     private state currentState;
 
@@ -30,6 +30,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorStatus elevatorStatus;
 
     List<ElevatorViewHandler> views;
+
+    private int doorStuck = 1;
     
     /**
      * Constructor for class Elevator
@@ -248,20 +250,31 @@ public class Elevator extends CommunicationRPC implements Runnable {
         if (msg.getFailure()== Message.Failures.TIMEOUT){
             currentState = state.DISABLED;
             handleTimeout();
+            for (ElevatorViewHandler view: views){
+                view.handleTimeoutFailure(new ElevatorEvent(this, currentState));
+            }
             System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             throw new TimeoutException();
         }
     }
     private void injectDoorFailure(Message msg){
-        if (msg.getFailure() == Message.Failures.DOORS){
+        if (msg.getFailure() == Message.Failures.DOORS && doorStuck == 1){
+            currentState = state.DOOR_STUCK;
+            for (ElevatorViewHandler view : views){
+                view.handleDoorFailure(new ElevatorEvent(this, currentState));
+            }
             System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
                 Thread.sleep(2000); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
             }
+            doorStuck = (doorStuck + 1) % 2;
         }
         currentState = state.DOOR_CLOSED;
         doorClosed(floor, currentState);
+//        for (ElevatorViewHandler view : views){
+//            view.handleDoorFailure(new ElevatorEvent(this, currentState));
+//        }
     }
 
     private void handleTimeout(){

@@ -43,7 +43,7 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         this.add(board, BorderLayout.CENTER);
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(500,800);
+        this.setSize(650,550);
         this.setVisible(true);
     }
 
@@ -52,6 +52,7 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
         Elevator elevator = (Elevator) e.getSource();
 
         JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
+        button.setBackground(Color.green);
         button.setText(e.getCurrState().toString());
     }
 
@@ -77,13 +78,28 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
 
     @Override
     public void handleTimeoutFailure(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
 
+        button.setBackground(Color.RED);
+        button.setText(e.getCurrState().toString());
     }
 
     @Override
     public void handleDoorFailure(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
 
+        if (e.getCurrState() == Elevator.state.DOOR_STUCK){
+            button.setBackground(Color.RED);
+            button.setText(e.getCurrState().toString());
+        }
+        else{
+            button.setBackground(Color.GREEN);
+            button.setText(e.getCurrState().toString());
+        }
     }
+
     public static void main(String[] args) {
         new ElevatorView();
     }
