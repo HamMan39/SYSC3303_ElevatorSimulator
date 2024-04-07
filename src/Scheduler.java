@@ -98,7 +98,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     }
 
     public boolean schedule(Message request){
-        // Case S1 (see Owen's notes)
+
         synchronized (elevatorsStatus) {
 
             // Get the current positions of each elevator
@@ -158,9 +158,6 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         //send the command to ElevatorSubsystem and receive Ack in form of ElevatorData update
         sendAndReceive(commandData, ELEVATOR_PORT);
 
-        //update elevatorStatus using ElevatorSubsystem response
-        byte response[] = sendReceivePacket.getData();
-
 
         String s = "received the elevator data!";
         byte[] ack = s.getBytes();
@@ -218,7 +215,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
 //                System.out.println(Thread.currentThread().getName()+" Waiting....");
 
-                byte receiveData[] = new byte[100];
+                byte[] receiveData = new byte[100];
                 elevatorUpdatePacket = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     updateReceiveSocket.receive(elevatorUpdatePacket);
