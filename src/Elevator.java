@@ -229,54 +229,54 @@ public class Elevator extends CommunicationRPC implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
-            Message message = null;
-            // Process pending requests before new ones
-            if(pendingMessages != null && pendingMessages.size() > 0) {
-                message = pendingMessages.remove(0);
-            } else {
-                message = incomingMessages.get();
-            }
-
-            if (message == null) {
-                System.out.println("Elevator System Exited");
-                outgoingMessages.put(null);
-                return;
-            }
-
-            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
-
-            if (message.getArrivalFloor() != this.currentFloor) {
-                try {
-                    travelFloors(message.getArrivalFloor());
-                } catch (TimeoutException e) {
-                    break; // if a timeout failure occurs, stop the elevator
-                }
-            }
-
-            try {
-                injectTimeoutFailure(message); //check for timeout failure
-            } catch (TimeoutException e) {
-                break; // if a timeout failure occurs, stop the elevator
-            }
-
-            loadPassenger(currentFloor);
-            injectDoorFailure(message); //check for door stuck failure
-
-            try {
-                travelFloors(message.getDestinationFloor()); //travel to destination floor
-            } catch (TimeoutException e) {
-                break; // if a timeout failure occurs, stop the elevator
-            }
-
-            loadPassenger(currentFloor);
-            injectDoorFailure(message); //check for door stuck failure
-            arrivalStatus(currentFloor, currentState);
-
-            Message.Directions direction = Message.Directions.IDLE;
-            lampStatus(direction);
-            outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
-        }
+//        while (true) {
+//            Message message = null;
+//            // Process pending requests before new ones
+//            if(pendingMessages != null && pendingMessages.size() > 0) {
+//                message = pendingMessages.remove(0);
+//            } else {
+//                message = incomingMessages.get();
+//            }
+//
+//            if (message == null) {
+//                System.out.println("Elevator System Exited");
+//                outgoingMessages.put(null);
+//                return;
+//            }
+//
+//            System.out.println(Thread.currentThread().getName() + " executing request from Scheduler : " + message);
+//
+//            if (message.getArrivalFloor() != this.currentFloor) {
+//                try {
+//                    travelFloors(message.getArrivalFloor());
+//                } catch (TimeoutException e) {
+//                    break; // if a timeout failure occurs, stop the elevator
+//                }
+//            }
+//
+//            try {
+//                injectTimeoutFailure(message); //check for timeout failure
+//            } catch (TimeoutException e) {
+//                break; // if a timeout failure occurs, stop the elevator
+//            }
+//
+//            loadPassenger(currentFloor);
+//            injectDoorFailure(message); //check for door stuck failure
+//
+//            try {
+//                travelFloors(message.getDestinationFloor()); //travel to destination floor
+//            } catch (TimeoutException e) {
+//                break; // if a timeout failure occurs, stop the elevator
+//            }
+//
+//            loadPassenger(currentFloor);
+//            injectDoorFailure(message); //check for door stuck failure
+//            arrivalStatus(currentFloor, currentState);
+//
+//            Message.Directions direction = Message.Directions.IDLE;
+//            lampStatus(direction);
+//            outgoingMessages.put(message); //echo the request message to indicate arrival at dest. floor
+//        }
     }
 
     public void lampStatus(Message.Directions direction) {
