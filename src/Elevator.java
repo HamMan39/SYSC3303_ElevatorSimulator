@@ -27,7 +27,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private ElevatorData elevatorData;
 
     private ElevatorStatus elevatorStatus;
-    private ArrayList<requestedStop> requestedStops;
+    private ArrayList<RequestedStop> requestedStops;
+    private Message.Directions elevatorDirection; // direction elevator is moving, only used internally and not tied to the state of the elevator (although they should be similar)
 
     List<ElevatorViewHandler> views;
 
@@ -48,6 +49,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.pendingMessages = new ArrayList<>();
         this.views = new ArrayList<>();
         this.requestedStops = new ArrayList<>();
+        this. elevatorDirection = Message.Directions.IDLE;
 
         addElevatorView(view);
     }
@@ -185,20 +187,35 @@ public class Elevator extends CommunicationRPC implements Runnable {
      * @param request
      */
     public void giveRequest(Message request) {
-        requestedStops.add(new requestedStop(request.getArrivalFloor(), false)); // add the arrival floor of the request
-        requestedStops.add(new requestedStop(request.getDestinationFloor(), true)); // add the destination of the request
+        // If elevator is not moving, save what the new direction is so the stops can be sorted
+        if (elevatorDirection == Message.Directions.IDLE){
+            elevatorDirection = request.getDirection();
+            modifyElevatorData(elevatorDirection);
+
+            // Elevator is "aimed" in a direction (up or down) but not moving yet, so direction is up/down but state is still idle
+        }
+        requestedStops.add(new RequestedStop(request.getArrivalFloor(), false)); // add the arrival floor of the request
+        requestedStops.add(new RequestedStop(request.getDestinationFloor(), true)); // add the destination of the request
 
         //Insertion sort algorithm (organize requests from closest to furthest from elevator)
-        int n = elevatorPositions.size();
+        int n = requestedStops.size();
         for (int i = 1; i < n; ++i) {
-            Integer[] key = elevatorPositions.get(i);
+            RequestedStop key = requestedStops.get(i);
             int j = i - 1;
 
-            while (j >= 0 && elevatorPositions.get(j)[1] > key[1]) {
-                elevatorPositions.set(j + 1, elevatorPositions.get(j));
-                j = j - 1;
+            if (elevatorDirection == Message.Directions.UP) { //if direction is up then sort in ascending order
+                while (j >= 0 && requestedStops.get(j).getFloor() > key.getFloor()) {
+                    requestedStops.set(j + 1, requestedStops.get(j));
+                    j = j - 1;
+                }
+                requestedStops.set(j + 1, key);
+            } else { // if direction is down then sort in descending order
+                while (j >= 0 && requestedStops.get(j).getFloor() < key.getFloor()) {
+                    requestedStops.set(j + 1, requestedStops.get(j));
+                    j = j - 1;
+                }
+                requestedStops.set(j + 1, key);
             }
-            elevatorPositions.set(j + 1, key);
         }
 
 
@@ -364,10 +381,10 @@ public class Elevator extends CommunicationRPC implements Runnable {
         return elevatorId;
     }
 
-    class requestedStop {
+    class RequestedStop {
         private int floor;
         private boolean isDestination;
-        public requestedStop(int floor, boolean isDestination){
+        public RequestedStop(int floor, boolean isDestination){
             this.floor = floor;
             this.isDestination = isDestination;
         }
