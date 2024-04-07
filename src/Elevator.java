@@ -250,7 +250,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
             RequestedStop nextStop = requestedStops.get(0);
 
             if (nextStop.getFloor() == currentFloor){
-                // open elevator doors
+                openDoors();
+
                 // wait for loading/unloading
 
                 // loop through requests at this floor, sleeping each time, until all passengers have loaded/unloaded
@@ -346,7 +347,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             doorStuck = (doorStuck + 1) % 2;
         }
         currentState = state.DOOR_CLOSED;
-        doorClosed(currentFloor, currentState);
+        closeDoors(currentFloor, currentState);
     }
 
     private void handleTimeout(){
@@ -372,7 +373,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void loadPassenger(int floor) {
         currentState = state.DOOR_OPEN;
-        doorOpen(floor, currentState);
+        openDoors(floor, currentState);
         Message.Directions direction = Message.Directions.IDLE;
         lampStatus(direction);
         try {
@@ -382,15 +383,31 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     }
 
-    public void doorOpen(int floor, state currentState){
-        System.out.println(">>"+ new TimeStamp().getTimestamp() +" "+ Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+    public void openDoors(){
+        try {
+            Thread.sleep(3000); // simulate 3 seconds for doors opening
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        currentState = state.DOOR_OPEN;
+
+        System.out.println(">>"+ new TimeStamp().getTimestamp() +" "+ Thread.currentThread().getName() + " at floor " + currentFloor + " - " + currentState );
         for (ElevatorViewHandler view : views){
             view.handleStateChange(new ElevatorEvent(this, currentState));
         }
     }
 
-    public void doorClosed(int floor, state currentState){
-        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+    public void closeDoors(){
+        try {
+            Thread.sleep(3000); // simulate 3 seconds for doors closing
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        currentState = state.DOOR_CLOSED;
+
+        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " at floor " + currentFloor + " - " + currentState );
         for (ElevatorViewHandler view : views){
             view.handleStateChange(new ElevatorEvent(this, currentState));
         }
