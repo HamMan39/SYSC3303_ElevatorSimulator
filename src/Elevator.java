@@ -78,7 +78,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 view.handleTravelFloor(new ElevatorEvent(this, Message.Directions.UP, currentState));
             }
             try {
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -93,7 +93,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 view.handleTravelFloor(new ElevatorEvent(this, Message.Directions.DOWN, currentState));
             }
             try {
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 System.exit(1);
