@@ -98,7 +98,6 @@ public class Scheduler extends CommunicationRPC implements Runnable {
     }
 
     public boolean schedule(Message request){
-        ArrayList<Integer> sectorElevators = determineSectorsElevator(request);
         // Case S1 (see Owen's notes)
         synchronized (elevatorsStatus) {
 
@@ -144,21 +143,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         System.out.println("Held requests: " + heldRequests.size());
         return false;
     }
-    private ArrayList<Integer> determineSectorsElevator(Message request){
-        int sourceFloor = request.getArrivalFloor();
-        if(sourceFloor == 1){
-            return new ArrayList(List.of(0,1));
-        } else if (1 < sourceFloor && sourceFloor <=12) {
-            return new ArrayList<>(List.of(2));
-        } else {
-            return new ArrayList<>(List.of(3));
-        }
-    }
 
-    //TODO implement RPC
     private void sendCommand(Message request, int elevator){
-        System.out.println("---------------");
-        System.out.println(elevator);
         ByteArrayOutputStream commandBuilder = new ByteArrayOutputStream();
         try {
             commandBuilder.write(elevator); // First byte in data will be elevator number
@@ -173,7 +159,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
         //update elevatorStatus using ElevatorSubsystem response
         byte response[] = sendReceivePacket.getData();
-        //elevatorsStatus.updateStatus(response);
+
 
         String s = "received the elevator data!";
         byte[] ack = s.getBytes();
@@ -294,6 +280,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                     newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request
                 } else { // First byte is elevator number that should be removed from active list
                     activeElevators.remove(failureMessage.getData()[0]);
+                    System.out.println("!!! Hard Fault Detected: Elevator " + failureMessage.getData()[0] + " removed from service !!!");
                 }
 
             }
