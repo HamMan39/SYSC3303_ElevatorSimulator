@@ -6,7 +6,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
     //Message boxes for communication with Scheduler
     private MessageBox incomingMessages, outgoingMessages;
 
-    private Thread[] elevators;
+    private Elevator[] elevators;
 
     private MessageBox[] messageBoxes;
     private ElevatorData elevatorData;
@@ -24,20 +24,16 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
         this.outgoingMessages = box4;
 
         elevatorData = new ElevatorData();
-        elevators = new Thread[numElevators];
+        elevators = new Elevator[numElevators];
 
-        messageBoxes = new MessageBox[numElevators];
 
         ElevatorView view = new ElevatorView();
 
         for(int i =0; i < numElevators; i++){
-            messageBoxes[i] = new MessageBox();
-            elevators[i] = new Thread(new Elevator(i, numFloors, elevatorData, view));
+            elevators[i] = new Elevator(i, numFloors, elevatorData, view);
+            (new Thread(elevators[i])).start();
         }
 
-        for(int i =0; i < numElevators; i++){
-            elevators[i].start();
-        }
 
         (new ElevatorUpdateSender()).start();
 
@@ -69,7 +65,7 @@ public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
             System.out.println(Thread.currentThread().getName() + " received message from Scheduler : " + message);
 
             //send message to correct elevator
-            messageBoxes[elevatorId].put(message);
+            elevators[elevatorId].giveRequest(message);
 
             try {
                 Thread.sleep(20);
