@@ -1,6 +1,13 @@
 import java.io.IOException;
 import java.net.*;
 
+/**
+ * This class represents the Elevator Subsystem which receives scheduler commands and distributes
+ * them to the respective elevator threads. The subsystem periodically updates
+ * the scheduler with the live ElevatorData for all threads.
+ * @author Mahnoor Fatima 101192353
+ * @author Owen Peterson 101233850
+ */
 public class ElevatorSubsystem extends CommunicationRPC implements Runnable{
 
     //Message boxes for communication with Scheduler

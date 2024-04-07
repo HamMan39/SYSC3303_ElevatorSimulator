@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * to pass messages between Floor and Elevator Subsystems.
  * @author Mahnoor Fatima 101192353
  * @author Owen Petersen 101233850
+ * @author Areej Mahmoud 101218260
  */
 public class Scheduler extends CommunicationRPC implements Runnable {
     private LinkedList<Message> heldRequests;

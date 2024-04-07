@@ -2,6 +2,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for Scheduler algorithm
+ * @author Khola Haseeb 101192363
+ */
 class SchedulerTest {
 
     @Test

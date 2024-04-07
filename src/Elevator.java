@@ -4,11 +4,12 @@ import java.util.*;
 
 /**
  * This Class represents the Elevator which travels between floors according to
- * received messages from the scheduler class, and alerts the Scheduler upon arrival
+ * received messages from the scheduler class, injects failures and alerts the Scheduler upon arrival
  * at the destination floor.
  * @author Nikita Sara Vijay 101195009
  * @author Areej Mahmoud 101218260
  * @author Khola Haseeb 101192363
+ * @author Owen Peterson 101233850
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 

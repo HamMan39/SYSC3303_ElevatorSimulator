@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * A data structure class to store live updates on Elevator threads.
+ * @author Owen Peterson 101233850
+ */
 public class ElevatorData {
     private ArrayList<ElevatorStatus> elevatorSubsystemStatus;
 
