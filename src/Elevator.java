@@ -298,14 +298,14 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     public void doorOpen(int floor, state currentState){
-        System.out.println(">>"+ new TimeStamp().getTimestamp() + Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>"+ new TimeStamp().getTimestamp() +" "+ Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
         for (ElevatorViewHandler view : views){
             view.handleStateChange(new ElevatorEvent(this, currentState));
         }
     }
 
     public void doorClosed(int floor, state currentState){
-        System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
+        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " at floor " + floor + " - " + currentState );
         for (ElevatorViewHandler view : views){
             view.handleStateChange(new ElevatorEvent(this, currentState));
         }
@@ -313,7 +313,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void arrivalStatus(int floor, state currentState){
         currentState = state.IDLE;
-        System.out.println(">>" + new TimeStamp().getTimestamp() +Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
+        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " is " + currentState + " and has arrived at floor " + floor);
         for (ElevatorViewHandler view : views){
             view.handleStateChange(new ElevatorEvent(this, currentState));
         }
