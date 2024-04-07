@@ -22,7 +22,7 @@ public class ElevatorTest {
         elevatorData = new ElevatorData();
 
         // Create Elevator instance
-        Elevator elevator = new Elevator(0,20,incomingMessages,outgoingMessages,elevatorData, view);
+        Elevator elevator = new Elevator(0,20,elevatorData, view);
 
         // create thread for elevator and start it
         Thread elevatorThread = new Thread(elevator);
