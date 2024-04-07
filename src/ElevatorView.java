@@ -14,6 +14,9 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
     private static final int ELEVATORS=4; // number of elevators
     private static final int FLOORS = 22; //number of floors to service
 
+    private static final int MAX_INDEX = FLOORS -1;
+
+
     public ElevatorView(){
         super("Elevator System");
         this.setLayout(new BorderLayout());
@@ -27,6 +30,12 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
             for (int j = 0; j < ELEVATORS; j++) {
                 buttons[i][j] = new JButton();
                 buttons[i][j].setEnabled(false);
+                if (i == MAX_INDEX){
+                    buttons[i][j].setBackground(Color.green);
+                    buttons[i][j].setText("IDLE");
+                }else {
+                    buttons[i][j].setBackground(Color.gray);
+                }
                 board.add(buttons[i][j]);
             }
         }
@@ -40,12 +49,30 @@ public class ElevatorView extends JFrame implements ElevatorViewHandler{
 
     @Override
     public void handleStateChange(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
 
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
+        button.setText(e.getCurrState().toString());
     }
 
     @Override
     public void handleTravelFloor(ElevatorEvent e) {
+        Elevator elevator = (Elevator) e.getSource();
 
+        if (e.getDirection() == Message.Directions.UP){
+            JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()-1][elevator.getElevatorId()];
+            button.setBackground(Color.green);
+            button.setText(e.getCurrState().toString());
+        }
+        else if(e.getDirection() == Message.Directions.DOWN){
+            JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()+1][elevator.getElevatorId()];
+            button.setBackground(Color.green);
+            button.setText(e.getCurrState().toString());
+        }
+
+        JButton button = buttons[MAX_INDEX - elevator.getCurrentFloor()][elevator.getElevatorId()];
+        button.setBackground(Color.gray);
+        button.setText("");
     }
 
     @Override
