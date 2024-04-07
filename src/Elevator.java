@@ -12,7 +12,14 @@ import java.util.*;
  */
 public class Elevator extends CommunicationRPC implements Runnable {
 
-    public static final int MAX_CAPACITY = 5;
+    public static final int MAX_CAPACITY = 5; // maximum number of passengers, should be 5
+    private static final int TRAVEL_FLOOR_TIME = 1000; //time for elevator to move one floor, should be 10000 (milliseconds)
+    private static final int DOOR_TIME = 1000; //time for doors to open/close, should be 3000 (milliseconds)
+    private static final int BOARDING_TIME = 1000; //time for passengers to load/unload, should be 5000 (milliseconds)
+    private static final int TRANSIENT_FAULT_TIME = 2000; //time for elevator to recover from transient fault (door stuck), should be 20000? (milliseconds)
+
+
+
 
     public enum state{IDLE, MOVING, DOOR_OPEN, DOOR_CLOSED, DOOR_STUCK, DISABLED}
 
@@ -82,7 +89,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 view.handleTravelFloor(new ElevatorEvent(this, Message.Directions.UP, currentState));
             }
             try {
-                Thread.sleep(1000);
+                Thread.sleep(TRAVEL_FLOOR_TIME);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -97,7 +104,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 view.handleTravelFloor(new ElevatorEvent(this, Message.Directions.DOWN, currentState));
             }
             try {
-                Thread.sleep(1000);
+                Thread.sleep(TRAVEL_FLOOR_TIME);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -224,7 +231,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                             break;
                         }
                         try {
-                            Thread.sleep(5000); // simulate 5 seconds for loading/unloading a single passenger
+                            Thread.sleep(BOARDING_TIME); // simulate 5 seconds for loading/unloading a single passenger
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                             System.exit(1);
@@ -274,7 +281,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
             }
             System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
             try {
-                Thread.sleep(2000); //add a delay for time taken to handle door failure
+                Thread.sleep(TRANSIENT_FAULT_TIME); //add a delay for time taken to handle door failure
             } catch (InterruptedException e) {
             }
             doorStuck = (doorStuck + 1) % 2;
@@ -357,7 +364,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void openDoors(){
         try {
-            Thread.sleep(3000); // simulate 3 seconds for doors opening
+            Thread.sleep(DOOR_TIME); // simulate 3 seconds for doors opening
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(1);
@@ -372,7 +379,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     public void closeDoors(){
         try {
-            Thread.sleep(3000); // simulate 3 seconds for doors closing
+            Thread.sleep(DOOR_TIME); // simulate 3 seconds for doors closing
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(1);
