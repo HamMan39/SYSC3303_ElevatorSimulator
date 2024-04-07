@@ -295,11 +295,6 @@ public class Elevator extends CommunicationRPC implements Runnable {
                 }
             }
 
-            System.out.println("-----------");
-            for (RequestedStop i : requestedStops){
-                System.out.println("stop: " + i.getFloor());
-            }
-            System.out.println("-----------");
 
 
             RequestedStop nextStop = requestedStops.get(0);
