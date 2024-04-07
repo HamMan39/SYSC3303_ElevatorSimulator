@@ -27,6 +27,10 @@ public class ElevatorData {
         return elevatorSubsystemStatus.get(elevator).getCurrentFloor();
     }
 
+    public Integer getElevatorLoad(Integer elevator){
+        return elevatorSubsystemStatus.get(elevator).getCurrentLoad();
+    }
+
     public ArrayList<ElevatorStatus> getElevatorSubsystemStatus() {
         return elevatorSubsystemStatus;
     }
