@@ -278,9 +278,10 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 if (failureMessage.getData()[0] == -1){ // Data is a request that needs to be rescheduled
 
                     Message rescheduleRequest = new Message(Arrays.copyOfRange(failureMessage.getData(), 1, failureMessage.getLength())); // get the request from the data
+                    System.out.println("!!! Failure Listener: rescheduling request: " + rescheduleRequest + " !!!");
                     newRequests.add(rescheduleRequest); // add the request back to the tasks to be scheduled, just like a new request
                 } else { // First byte is elevator number that should be removed from active list
-                    activeElevators.remove(failureMessage.getData()[0]);
+                    activeElevators.remove((Integer) (int) failureMessage.getData()[0]); // (casting to int then Integer so that it is removing object and not index)
                     System.out.println("!!! Hard Fault Detected: Elevator " + failureMessage.getData()[0] + " removed from service !!!");
                 }
 

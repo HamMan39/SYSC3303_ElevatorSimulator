@@ -163,7 +163,8 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
 
         if (request.getFailure()== Message.Failures.TIMEOUT) {
-                injectTimeoutFailure();
+            request.setFailureNone();
+            injectTimeoutFailure();
 
         }
         if (request.getFailure() == Message.Failures.DOORS && doorStuck == 1) {
@@ -264,10 +265,6 @@ public class Elevator extends CommunicationRPC implements Runnable {
         }
     }
     private void injectTimeoutFailure() {
-            for (ElevatorViewHandler view: views){
-                view.handleTimeoutFailure(new ElevatorEvent(this, currentState));
-            }
-            System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
             disableElevator();
 
     }
@@ -287,8 +284,13 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     private void handleTimeout(){
-         sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
+        sendAndReceive(new byte[]{(byte) elevatorId}, 66); // tell scheduler which elevator to shut down
         currentState = state.DISABLED;
+
+        for (ElevatorViewHandler view: views){
+            view.handleTimeoutFailure(new ElevatorEvent(this, currentState));
+        }
+        System.out.println(Thread.currentThread().getName() + "TIMEOUT failure. Shutting down...");
 
         ArrayList<Integer> rescheduledRequests = new ArrayList<>(); // list of requests that have already been re-scheduled
 
@@ -307,6 +309,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                         System.exit(1);
                     }
                     rescheduledRequests.add(rs.getRequestID()); // remember that this request has already been rescheduled
+
                 } else { // this is an arrival request so it has not been picked up yet
                     Message request = requestHistory.get(rs.getRequestID()); // find the corresponding request for this floor so the request can be rescheduled
                     try {
@@ -317,6 +320,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
                     }
                     rescheduledRequests.add(rs.getRequestID()); // remember that this request has already been rescheduled
                 }
+                sendAndReceive(byteStream.toByteArray(), 66);
             }
         }
 
