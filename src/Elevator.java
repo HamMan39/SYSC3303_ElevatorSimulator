@@ -296,25 +296,27 @@ public class Elevator extends CommunicationRPC implements Runnable {
             if (nextStop.getFloor() == currentFloor){
                 openDoors();
 
-                // This while-loop handles loading/unloading all requests at this floor
-                Iterator<RequestedStop> it = requestedStops.iterator(); // using an iterator for easier removal of items
-                while (it.hasNext()) {
-                    RequestedStop rs = it.next();
-                    if (rs.getFloor() != currentFloor) { // if a request is not from the current floor then stop the loop
-                        break;
-                    }
-                    try {
-                        Thread.sleep(5000); // simulate 5 seconds for loading/unloading a single passenger
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        System.exit(1);
-                    }
-                    if (rs.getIsDestination()) { // if a passenger is getting off then decrease load
-                        currentLoad--;
-                    }
-                    it.remove(); // remove the stop from the list
+                synchronized (this) {
+                    // This while-loop handles loading/unloading all requests at this floor
+                    Iterator<RequestedStop> it = requestedStops.iterator(); // using an iterator for easier removal of items
+                    while (it.hasNext()) {
+                        RequestedStop rs = it.next();
+                        if (rs.getFloor() != currentFloor) { // if a request is not from the current floor then stop the loop
+                            break;
+                        }
+                        try {
+                            Thread.sleep(5000); // simulate 5 seconds for loading/unloading a single passenger
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
+                        if (rs.getIsDestination()) { // if a passenger is getting off then decrease load
+                            currentLoad--;
+                        }
+                        it.remove(); // remove the stop from the list
 
-                    updateElevatorData();
+                        updateElevatorData();
+                    }
                 }
 
                 closeDoors();
