@@ -40,6 +40,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
     private boolean elevatorDisabled;
     private int requestIDcount; // used for assigning requests a unique id, only needed for re-scheduling purposes if elevator fails
     private ArrayList<Message> requestHistory;
+    private boolean doorFault;
 
     List<ElevatorViewHandler> views;
 
@@ -64,6 +65,7 @@ public class Elevator extends CommunicationRPC implements Runnable {
         this.elevatorDisabled = false;
         this.requestIDcount = 0;
         this.requestHistory = new ArrayList<Message>();
+        this.doorFault = false;
         addElevatorView(view);
     }
 
@@ -171,7 +173,6 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
         }
         if (request.getFailure() == Message.Failures.DOORS && doorStuck == 1) {
-             currentState = state.DOOR_STUCK;
              injectDoorFailure(); //check for door stuck failure
         }
 
@@ -265,18 +266,19 @@ public class Elevator extends CommunicationRPC implements Runnable {
 
     }
     private void injectDoorFailure(){
-            for (ElevatorViewHandler view : views){
-                view.handleDoorFailure(new ElevatorEvent(this, currentState));
-            }
-            System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
-            try {
-                Thread.sleep(TRANSIENT_FAULT_TIME); //add a delay for time taken to handle door failure
-            } catch (InterruptedException ignored) {
-            }
-            doorStuck = (doorStuck + 1) % 2;
-
-        currentState = state.DOOR_CLOSED;
-        closeDoors();
+        doorFault = true;
+//            for (ElevatorViewHandler view : views){
+//                view.handleDoorFailure(new ElevatorEvent(this, currentState));
+//            }
+//            System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
+//            try {
+//                Thread.sleep(TRANSIENT_FAULT_TIME); //add a delay for time taken to handle door failure
+//            } catch (InterruptedException ignored) {
+//            }
+//            doorStuck = (doorStuck + 1) % 2;
+//
+//        currentState = state.DOOR_CLOSED;
+//        closeDoors();
     }
 
     private void handleTimeout(){
@@ -348,17 +350,35 @@ public class Elevator extends CommunicationRPC implements Runnable {
     }
 
     public void closeDoors(){
-        try {
-            Thread.sleep(DOOR_TIME); // simulate 3 seconds for doors closing
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        currentState = state.DOOR_CLOSED;
+        if (!doorFault) {
+            try {
+                Thread.sleep(DOOR_TIME); // simulate 3 seconds for doors closing
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            currentState = state.DOOR_CLOSED;
 
-        System.out.println(">>" + new TimeStamp().getTimestamp() +" "+Thread.currentThread().getName() + " at floor " + currentFloor + " - " + currentState );
-        for (ElevatorViewHandler view : views){
-            view.handleStateChange(new ElevatorEvent(this, currentState));
+            System.out.println(">>" + new TimeStamp().getTimestamp() + " " + Thread.currentThread().getName() + " at floor " + currentFloor + " - " + currentState);
+            for (ElevatorViewHandler view : views) {
+                view.handleStateChange(new ElevatorEvent(this, currentState));
+            }
+        }
+        else {
+            currentState = state.DOOR_STUCK;
+            for (ElevatorViewHandler view : views){
+                view.handleDoorFailure(new ElevatorEvent(this, currentState));
+            }
+            System.out.println(Thread.currentThread().getName() + " DOOR STUCK. Attempting to close ...");
+            try {
+                Thread.sleep(TRANSIENT_FAULT_TIME); //add a delay for time taken to handle door failure
+            } catch (InterruptedException ignored) {
+            }
+            doorStuck = (doorStuck + 1) % 2;
+
+            currentState = state.DOOR_CLOSED;
+            doorFault = false;
+            System.out.println(Thread.currentThread().getName() + " DOOR FAULT FIXED");
         }
     }
 
