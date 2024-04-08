@@ -70,6 +70,11 @@ public class ElevatorData {
 
     }
 }
+
+/**
+ * A status  class to store live status updates on Elevator threads.
+ * @author Owen Peterson 101233850
+ */
 class ElevatorStatus {
     private int currentFloor;
     private Message.Directions currentDirection;
