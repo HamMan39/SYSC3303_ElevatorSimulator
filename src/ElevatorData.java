@@ -20,8 +20,16 @@ public class ElevatorData {
         }
     }
 
-    public boolean sameDirection(Message.Directions requestDirection, int elevator) {
-        return (requestDirection.equals(elevatorSubsystemStatus.get(elevator).getCurrentDirection()));
+    public boolean sameDirection(Message.Directions requestDirection, int arrivalFloor, int elevator) {
+        boolean matchDirection = requestDirection.equals(elevatorSubsystemStatus.get(elevator).getCurrentDirection());
+        boolean movingTowards;
+        if (requestDirection == Message.Directions.UP) {
+            movingTowards = arrivalFloor > elevatorSubsystemStatus.get(elevator).getCurrentFloor();
+        } else {
+            movingTowards = arrivalFloor < elevatorSubsystemStatus.get(elevator).getCurrentFloor();
+
+        }
+        return (matchDirection && movingTowards);
     }
     public boolean isIdle(int elevator){ // elevator should be elevator number, not index
         return (elevatorSubsystemStatus.get(elevator).getCurrentDirection().equals(Message.Directions.IDLE));

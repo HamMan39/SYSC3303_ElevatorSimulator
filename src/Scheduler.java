@@ -91,9 +91,8 @@ public class Scheduler extends CommunicationRPC implements Runnable {
             // Send the acknowledgement to the floor via the floorSocket.
             try {
                 floorSocket.send(floorSendPacket);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
+            } catch (IOException ignored) {
+
             }
         }
     }
@@ -134,7 +133,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
 
             //Second try to assign to the closest elevator moving towards the request
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
-                if (elevatorsStatus.sameDirection(request.getDirection(), elevator[0])){ // check if each elevator is going in the same direction
+                if (elevatorsStatus.sameDirection(request.getDirection(), request.getArrivalFloor(), elevator[0])){ // check if each elevator is going in the same direction
                     if (elevatorsStatus.getElevatorLoad(elevator[0]) < Elevator.MAX_CAPACITY) {
                         sendCommand(request, elevator[0]);
                         return true;
@@ -180,6 +179,11 @@ public class Scheduler extends CommunicationRPC implements Runnable {
         Iterator<Message> it;
         while(true){
             try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try {
                 Message request = newRequests.remove(); //Try to get a new request
                 if (!schedule(request)){ //Schedule the request, if it can't be scheduled add it to held requests
                     heldRequests.add(request);
@@ -193,6 +197,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 Message request = it.next();
                 if (schedule(request)) {
                     it.remove();
+                    break;
                 }
             }
         }
