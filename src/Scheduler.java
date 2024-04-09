@@ -120,6 +120,15 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 elevatorPositions.set(j + 1, key);
             }
 
+            //Second try to assign to the closest elevator moving towards the request
+            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
+                if (elevatorsStatus.sameDirection(request.getDirection(), request.getArrivalFloor(), elevator[0])){ // check if each elevator is going in the same direction
+                    if (elevatorsStatus.getElevatorLoad(elevator[0]) < Elevator.MAX_CAPACITY) {
+                        sendCommand(request, elevator[0]);
+                        return true;
+                    }
+                }
+            }
 
             //First try to assign to the closest idle elevator, if there is any idle elevator
             for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
@@ -131,15 +140,7 @@ public class Scheduler extends CommunicationRPC implements Runnable {
                 }
             }
 
-            //Second try to assign to the closest elevator moving towards the request
-            for (Integer[] elevator:elevatorPositions){ // Go through elevators in order of which is closest
-                if (elevatorsStatus.sameDirection(request.getDirection(), request.getArrivalFloor(), elevator[0])){ // check if each elevator is going in the same direction
-                    if (elevatorsStatus.getElevatorLoad(elevator[0]) < Elevator.MAX_CAPACITY) {
-                        sendCommand(request, elevator[0]);
-                        return true;
-                    }
-                }
-            }
+
 
         }
         return false;
